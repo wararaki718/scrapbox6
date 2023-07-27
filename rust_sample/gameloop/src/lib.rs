@@ -2,8 +2,13 @@
 mod browser;
 mod schema;
 mod engine;
+mod game;
 
 use wasm_bindgen::prelude::*;
+use wasm_bindgen::JsValue;
+
+use game::WalkTheDog;
+use engine::GameLoop;
 use gloo_utils::format::JsValueSerdeExt;
 
 // This is like the `main` function, except for JavaScript.
@@ -11,22 +16,11 @@ use gloo_utils::format::JsValueSerdeExt;
 pub fn main_js() -> Result<(), JsValue> {
     console_error_panic_hook::set_once();
 
-    let context = browser::context().expect("Counld not get browser context");
     browser::spawn_local(async move {
-        let sheet: schema::Sheet = browser::fetch_json("rhb.json")
-            .await
-            .expect("Could not fetch rhb.json")
-            .into_serde()
-            .expect("Could not convert rhb.json into a Sheet structure");
+        let game = WalkTheDog::new();
 
-        let image = engine::load_image("rhb.png")
-            .await
-            .expect("Cound not load rhb.png");
-
-        let mut frame = -1;
+        GameLoop::start(game).await.expect("Could not start game loop");
     });
-
-    let document = browser::document().expect("No Document Found");
 
 
     Ok(())

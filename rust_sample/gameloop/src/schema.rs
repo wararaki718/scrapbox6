@@ -4,16 +4,25 @@ use serde::Deserialize;
 
 #[derive(Deserialize)]
 pub struct Rect {
-    pub x: u16,
-    pub y: u16,
-    pub w: u16,
-    pub h: u16,
+    pub x: f32,
+    pub y: f32,
+    pub width: f32,
+    pub height: f32,
+}
+
+
+#[derive(Deserialize)]
+pub struct SheetRect {
+    pub x: i16,
+    pub y: i16,
+    pub w: i16,
+    pub h: i16,
 }
 
 
 #[derive(Deserialize)]
 pub struct Cell {
-    pub frame: Rect,
+    pub frame: SheetRect,
 }
 
 

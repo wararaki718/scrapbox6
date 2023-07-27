@@ -1,8 +1,9 @@
 use std::future::Future;
 use wasm_bindgen_futures::JsFuture;
 use web_sys::{self, Window, Document, HtmlCanvasElement, CanvasRenderingContext2d, Response, HtmlImageElement};
-use wasm_bindgen::{JsCast, JsValue, closure::{Closure, WasmClosureFnOnce}};
-use anyhow::{anyhow, Result};
+use wasm_bindgen::{JsCast, JsValue, closure::{Closure, WasmClosureFnOnce, WasmClosure}};
+use anyhow::{anyhow, Result, Ok};
+
 
 macro_rules! log {
     ($( $t:tt )* ) => {
@@ -69,3 +70,23 @@ where
     Closure::once(fn_once)
 }
 
+pub type LoopClosure = Closure<dyn FnMut(f64)>;
+pub fn request_animation_frame(callback: &LoopClosure) -> Result<i32> {
+    window()?
+        .request_animation_frame(callback.as_ref().unchecked_ref())
+        .map_err(|error| anyhow!("Cannot request animation frame{:#?}", error))
+}
+
+pub fn closure_wrap<T: WasmClosure + ?Sized>(data: Box<T>) -> Closure<T> {
+    Closure::wrap(data)
+}
+
+pub fn create_raf_closure(f: impl FnMut(f64) + 'static) -> LoopClosure {
+    closure_wrap(Box::new(f))
+}
+
+pub fn now() -> Result<f64> {
+    Ok(
+        window()?.performance().ok_or_else(|| anyhow!("Performance object not found"))?.now()
+    )
+}
