@@ -22,3 +22,7 @@ class Database:
 
     def search(self, keyword: str) -> List[Item]:
         return [item for item in self._db if item.name == keyword]
+
+    def index(self) -> List[str]:
+        keys = set([item.name for item in self._db])
+        return list(keys)

@@ -11,3 +11,7 @@ class Item(BaseModel):
 
 class SearchResult(BaseModel):
     items: List[Item]
+
+
+class IndexResult(BaseModel):
+    indices: List[str]

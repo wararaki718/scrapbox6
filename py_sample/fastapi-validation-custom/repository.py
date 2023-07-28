@@ -12,3 +12,8 @@ class ItemRepository:
     def search(cls, key: str) -> List[Item]:
         items = database.search(key)
         return items
+
+    @classmethod
+    def index(cls) -> List[str]:
+        indices = database.index()
+        return indices

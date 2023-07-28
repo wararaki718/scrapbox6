@@ -11,3 +11,10 @@ class SearchService:
         keyword = query.keyword
         items = ItemRepository.search(keyword)
         return items
+
+
+class IndexService:
+    @classmethod
+    def index(cls) -> List[str]:
+        indices = ItemRepository.index()
+        return indices
