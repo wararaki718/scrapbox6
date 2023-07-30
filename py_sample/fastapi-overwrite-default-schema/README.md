@@ -1,4 +1,4 @@
-# generate fastapi schema
+# overwrite fastapi schema
 
 ## setup
 

@@ -1,4 +1,4 @@
-# generate fastapi schema
+# custom exceptions
 
 ## setup
 
