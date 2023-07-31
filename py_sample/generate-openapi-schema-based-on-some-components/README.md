@@ -1,4 +1,4 @@
-# schema generate for fastapi
+# generate openapi schema
 
 ## setup
 
@@ -9,7 +9,7 @@ pip install datamodel-code-generator
 ## generate schema
 
 ```shell
-datamodel-codegen --input openapi.yaml --input-file-type openapi --output app/schema/model.py
+datamodel-codegen --input docs/openapi.yaml --input-file-type openapi --output app/schema/model.py
 ```
 
 ## run

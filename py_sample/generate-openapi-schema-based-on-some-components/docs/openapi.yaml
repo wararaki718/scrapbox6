@@ -1,0 +1,22 @@
+openapi: 3.0.3
+info:
+  version: 1.0.0
+  title: Swagger Petstore
+  license:
+    name: MIT
+servers:
+  - url: http://localhost:8000
+    description: local
+paths:
+  /pets:
+    $ref: "./paths/pets.yaml"
+  /pets/{petId}:
+    $ref: "./paths/pet_id.yaml"
+components:
+  schemas:
+    Pet:
+      $ref: "./components/pet.yaml"
+    Pets:
+      $ref: "./components/pets.yaml"
+    Error:
+      $ref: "./components/error.yaml"
