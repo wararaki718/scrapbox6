@@ -6,7 +6,7 @@ use gloo_utils::format::JsValueSerdeExt;
 
 
 use crate::browser;
-use crate::schema::{Sheet, Rect, Point};
+use crate::schema::{Sheet, Rect};
 use crate::engine::{self, Game, Renderer, KeyState};
 
 
@@ -18,12 +18,17 @@ mod red_hat_boy_states {
     const IDLE_FRAMES: u8 = 29;
     const RUNNING_FRAMES: u8 = 23;
     const RUNNING_SPEED: i16 = 3;
+    const SLIDING_FRAMES: u8 = 14;
+    const SLIDING_FRAME_NAME: &str = "Slide";
 
     #[derive(Copy, Clone)]
     pub struct Idle;
 
     #[derive(Copy, Clone)]
     pub struct Running;
+
+    #[derive(Copy, Clone)]
+    pub struct Sliding;
 
     #[derive(Copy, Clone)]
     pub struct RedHatBoyState<S> {
@@ -61,8 +66,9 @@ mod red_hat_boy_states {
             }
         }
 
-        pub fn update(&mut self) {
+        pub fn update(mut self) -> Self {
             self.context = self.context.update(IDLE_FRAMES);
+            self
         }
     }
 
@@ -71,8 +77,23 @@ mod red_hat_boy_states {
             RUN_FRAME_NAME
         }
 
-        pub fn update(&mut self) {
+        pub fn update(mut self) -> Self {
             self.context = self.context.update(RUNNING_FRAMES);
+            self
+        }
+
+        pub fn slide(self) -> RedHatBoyState<Sliding> {
+            RedHatBoyState { context: self.context.reset_frame(), _state: Sliding {}, }
+        }
+    }
+
+    impl RedHatBoyState<Sliding> {
+        pub fn frame_name(&self) -> &str {
+            SLIDING_FRAME_NAME
+        }
+
+        pub fn update(&self) {
+            self.context = self.context.update(SLIDING_FRAMES);
         }
     }
 
@@ -113,10 +134,13 @@ use self::red_hat_boy_states::*;
 enum RedHatBoyStateMachine {
     Idle(RedHatBoyState<Idle>),
     Running(RedHatBoyState<Running>),
+    Sliding(RedHatBoyState<Sliding>),
 }
 
 pub enum Event {
     Run,
+    Slide,
+    Update,
 }
 
 
@@ -125,7 +149,19 @@ impl RedHatBoyStateMachine {
         match (self, event) {
             (RedHatBoyStateMachine::Idle(state), Event::Run) => {
                 state.run().into()
-            }
+            },
+            (RedHatBoyStateMachine::Running(state), Event::Slide) => {
+                state.slide().into()
+            },
+            (RedHatBoyStateMachine::Idle(state), Event::Update) => { 
+                state.update().into()
+            },
+            (RedHatBoyStateMachine::Running(state), Event::Update) => { 
+                state.update().into()
+            },
+            (RedHatBoyStateMachine::Sliding(state), Event::Update) => { 
+                state.update().into()
+            },
             _ => self,
         }
     }
@@ -134,6 +170,7 @@ impl RedHatBoyStateMachine {
         match self {
             RedHatBoyStateMachine::Idle(state) => state.frame_name(),
             RedHatBoyStateMachine::Running(state) => state.frame_name(),
+            RedHatBoyStateMachine::Sliding(state) => state.frame_name(),
         }
     }
 
@@ -141,26 +178,24 @@ impl RedHatBoyStateMachine {
         match self {
             RedHatBoyStateMachine::Idle(state) => &state.context(),
             RedHatBoyStateMachine::Running(state) => &state.context(),
+            RedHatBoyStateMachine::Sliding(state) => &state.context(),
         }
     }
 
     fn update(self) -> Self {
-        match self {
-            RedHatBoyStateMachine::Idle(mut state) => {
-                state.update();
-                RedHatBoyStateMachine::Idle(state)
-            }
-            RedHatBoyStateMachine::Running(mut state) => {
-                state.update();
-                RedHatBoyStateMachine::Running(state)
-            }
-        }
+        self.transition(Event::Update)
     }
 }
 
 impl From<RedHatBoyState<Running>> for RedHatBoyStateMachine {
     fn from(state: RedHatBoyState<Running>) -> Self {
         RedHatBoyStateMachine::Running(state)
+    }
+}
+
+impl From<RedHatBoyState<Idle>> for RedHatBoyStateMachine {
+    fn from(state: RedHatBoyState<Idle>) -> Self {
+        RedHatBoyStateMachine::Idle(state)
     }
 }
 
@@ -213,19 +248,19 @@ impl RedHatBoy {
     fn run_right(&mut self) {
         self.state_machine = self.state_machine.transition(Event::Run);
     }
+
+    fn slide(&mut self) {
+        self.state_machine = self.state_machine.transition(Event::Slide);
+    }
 }
 
 pub struct WalkTheDog {
-    image: Option<HtmlImageElement>,
-    sheet: Option<Sheet>,
-    frame: u8,
-    position: Point,
-    rhb: Option<RedHatBoy>
+    rhb: Option<RedHatBoy>,
 }
 
 impl WalkTheDog {
     pub fn new() -> Self {
-        WalkTheDog { image: None, sheet: None, frame: 0, position: Point { x: 0, y: 0 }, rhb: None }
+        WalkTheDog { rhb: None }
     }
 }
 
@@ -236,10 +271,6 @@ impl Game for WalkTheDog {
         let image: Option<HtmlImageElement> = Some(engine::load_image("rhb.png").await?);
 
         Ok(Box::new(WalkTheDog {
-            image: image.clone(),
-            sheet: sheet.clone(),
-            frame: self.frame,
-            position: self.position,
             rhb: Some(RedHatBoy::new(
                 sheet.clone().ok_or_else(|| anyhow!("No Sheet Present"))?,
                 image.clone().ok_or_else(|| anyhow!("No Image Present"))?,
@@ -248,65 +279,28 @@ impl Game for WalkTheDog {
     }
 
     fn update(&mut self, keystate: &KeyState) {
-        let mut velocity = Point { x: 0, y: 0 };
         if keystate.is_pressed("ArrowDown") {
-            velocity.y += 3;
+            self.rhb.as_mut().unwrap().slide();
         }
         if keystate.is_pressed("ArrowUp") {
-            velocity.y -= 3;
+
         }
         if keystate.is_pressed("ArrowRight") {
-            velocity.x += 3;
             self.rhb.as_mut().unwrap().run_right();
         }
         if keystate.is_pressed("ArrowLeft") {
-            velocity.x -= 3;
-        }
 
-        self.position.x += velocity.x;
-        self.position.y += velocity.y;
-        
-        if self.frame < 23 {
-            self.frame += 1;
-        } else {
-            self.frame = 0;
         }
         
         self.rhb.as_mut().unwrap().update();
     }
 
     fn draw(&self, renderer: &Renderer) {
-        let current_sprite = (self.frame / 3) + 1;
-        let frame_name = format!("Run ({}).png", current_sprite);
-        let sprite = self
-            .sheet
-            .as_ref()
-            .and_then(|sheet| sheet.frames.get(&frame_name))
-            .expect("Cell not found");
-
         renderer.clear(&Rect {
             x: 0.0,
             y: 0.0,
             width: 600.0,
             height: 600.0,
-        });
-
-        self.image.as_ref().map(|image| {
-            renderer.draw_image(
-                &image,
-                &Rect {
-                    x: sprite.frame.x.into(),
-                    y: sprite.frame.y.into(),
-                    width: sprite.frame.w.into(),
-                    height: sprite.frame.h.into(),
-                },
-                &Rect {
-                    x: self.position.x.into(),
-                    y: self.position.y.into(),
-                    width: sprite.frame.w.into(),
-                    height: sprite.frame.h.into(),
-                }
-            );
         });
 
         self.rhb.as_ref().unwrap().draw(renderer);
