@@ -1,0 +1,130 @@
+openapi: 3.0.3
+info:
+  version: 1.0.0
+  title: Swagger Petstore
+  license:
+    name: MIT
+servers:
+  - url: http://localhost:8000
+    description: local
+tags:
+  - name: pets
+paths:
+  /pets/{petId}:
+    get:
+      summary: Info for a specific pet
+      operationId: showPetById
+      tags:
+        - pets
+      parameters:
+        - $ref: "#/components/parameters/PetId"
+      responses:
+        '200':
+          description: Expected response to a valid request
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Pets"
+        '404':
+          description: not found error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/NotFoundError"
+        '422':
+          description: unprocessable entity error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/UnprocessableEntityError"
+        '500':
+          description: internal server error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/InternalServerError"
+  /pets:
+    get:
+      summary: List all pets
+      operationId: listPets
+      tags:
+        - pets
+      parameters:
+        - $ref: "#/components/parameters/Limit"
+      responses:
+        '200':
+          description: A paged array of pets
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Pet"
+        '422':
+          description: not found error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/UnprocessableEntityError"
+        '500':
+          description: internal server error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/InternalServerError"
+    post:
+      summary: Create a pet
+      operationId: createPets
+      tags:
+        - pets
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/Pet"
+      responses:
+        '201':
+          description: Null response
+        '400':
+          description: bad request
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/BadRequestError"
+        '422':
+          description: not found error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/UnprocessableEntityError"
+        '500':
+          description: internal server error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/InternalServerError"
+components:
+  schemas:
+    Pet:
+      $ref: "./components/schemas/pet.yaml"
+    Pets:
+      type: object
+      required:
+        - pets
+      properties:
+        pets:
+          type: array
+          items:
+            $ref: "#/components/schemas/Pet"
+    BadRequestError:
+      $ref: "./components/schemas/error/bad_request_error.yaml"
+    UnprocessableEntityError:
+      $ref: "./components/schemas/error/unprocessable_entity_error.yaml"
+    InternalServerError:
+      $ref: "./components/schemas/error/internal_server_error.yaml"
+    NotFoundError:
+      $ref: "./components/schemas/error/not_found_error.yaml"
+  parameters:
+    PetId:
+      $ref: "./components/parameters/pet_id.yaml"
+    Limit:
+      $ref: "./components/parameters/limit.yaml"
