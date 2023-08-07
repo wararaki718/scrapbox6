@@ -6,7 +6,7 @@ use gloo_utils::format::JsValueSerdeExt;
 
 
 use crate::browser;
-use crate::schema::{Sheet, Rect, Point};
+use crate::schema::{Sheet, Rect, Point, Cell};
 use crate::engine::{self, Game, Renderer, KeyState, Image};
 
 
@@ -25,6 +25,8 @@ mod red_hat_boy_states {
     const JUMPING_FRAME_NAME: &str = "Jump";
     const JUMPING_FRAMES: u8 = 14;
     const STARTING_POINT: i16 = -20;
+    const FALLING_FRAMES: u8 = 29;
+    const FALLING_FRAME_NAME: &str = "Dead";
 
     pub enum SlidingEndState {
         Complete(RedHatBoyState<Running>),
@@ -34,6 +36,11 @@ mod red_hat_boy_states {
     pub enum JumpingEndState {
         Complete(RedHatBoyState<Running>),
         Jumping(RedHatBoyState<Jumping>),
+    }
+
+    pub enum FallingEndState {
+        KnockOut(RedHatBoyState<KnockedOut>),
+        Falling(RedHatBoyState<Falling>),
     }
 
     #[derive(Copy, Clone)]
@@ -47,6 +54,12 @@ mod red_hat_boy_states {
 
     #[derive(Copy, Clone)]
     pub struct Jumping;
+
+    #[derive(Copy, Clone)]
+    pub struct Falling;
+
+    #[derive(Copy, Clone)]
+    pub struct KnockedOut;
 
     #[derive(Copy, Clone)]
     pub struct RedHatBoyState<S> {
@@ -107,6 +120,10 @@ mod red_hat_boy_states {
         pub fn jump(self) -> RedHatBoyState<Jumping> {
             RedHatBoyState { context: self.context.set_vertical_velocity(JUMP_SPEED).reset_frame(), _state: Jumping {}, }
         }
+
+        pub fn knock_out(self) -> RedHatBoyState<Falling> {
+            RedHatBoyState { context: self.context.reset_frame().stop(), _state: Falling {}, }
+        }
     }
 
     impl RedHatBoyState<Sliding> {
@@ -127,6 +144,35 @@ mod red_hat_boy_states {
         pub fn stand(self) -> RedHatBoyState<Running> {
             RedHatBoyState { context: self.context.reset_frame(), _state: Running }
         }
+
+        pub fn knock_out(self) -> RedHatBoyState<Falling> {
+            RedHatBoyState { context: self.context.reset_frame().stop(), _state: Falling {}, }
+        }
+    }
+
+    impl RedHatBoyState<Falling> {
+        pub fn frame_name(&self) -> &str {
+            FALLING_FRAME_NAME
+        }
+
+        pub fn knock_out(self) -> RedHatBoyState<KnockedOut> {
+            RedHatBoyState { context: self.context, _state: KnockedOut {} }
+        }
+
+        pub fn update(mut self) -> FallingEndState {
+            self.context = self.context.update(FALLING_FRAMES);
+            if self.context.frame >= FALLING_FRAMES {
+                FallingEndState::KnockOut(self.knock_out())
+            } else {
+                FallingEndState::Falling(self)
+            }
+        }
+    }
+
+    impl RedHatBoyState<KnockedOut> {
+        pub fn frame_name(&self) -> &str {
+            FALLING_FRAME_NAME
+        }
     }
 
     impl RedHatBoyState<Jumping> {
@@ -145,6 +191,10 @@ mod red_hat_boy_states {
 
         pub fn land(self) -> RedHatBoyState<Running> {
             RedHatBoyState { context: self.context.reset_frame(), _state: Running }
+        }
+
+        pub fn knock_out(self) -> RedHatBoyState<Falling> {
+            RedHatBoyState { context: self.context.reset_frame().stop(), _state: Falling {}, }
         }
     }
 
@@ -185,6 +235,11 @@ mod red_hat_boy_states {
             self.velocity.y = y;
             self
         }
+
+        fn stop(mut self) -> Self {
+            self.velocity.x = 0;
+            self
+        }
     }
 }
 
@@ -196,6 +251,8 @@ enum RedHatBoyStateMachine {
     Running(RedHatBoyState<Running>),
     Sliding(RedHatBoyState<Sliding>),
     Jumping(RedHatBoyState<Jumping>),
+    Falling(RedHatBoyState<Falling>),
+    KnockedOut(RedHatBoyState<KnockedOut>),
 }
 
 pub enum Event {
@@ -203,6 +260,7 @@ pub enum Event {
     Slide,
     Update,
     Jump,
+    KnockOut,
 }
 
 
@@ -230,6 +288,18 @@ impl RedHatBoyStateMachine {
             (RedHatBoyStateMachine::Jumping(state), Event::Update) => { 
                 state.update().into()
             },
+            (RedHatBoyStateMachine::Running(state), Event::KnockOut) => {
+                state.knock_out().into()
+            },
+            (RedHatBoyStateMachine::Jumping(state), Event::KnockOut) => {
+                state.knock_out().into()
+            },
+            (RedHatBoyStateMachine::Sliding(state), Event::KnockOut) => {
+                state.knock_out().into()
+            },
+            (RedHatBoyStateMachine::Falling(state), Event::Update) => {
+                state.update().into()
+            }
             _ => self,
         }
     }
@@ -240,6 +310,8 @@ impl RedHatBoyStateMachine {
             RedHatBoyStateMachine::Running(state) => state.frame_name(),
             RedHatBoyStateMachine::Sliding(state) => state.frame_name(),
             RedHatBoyStateMachine::Jumping(state) => state.frame_name(),
+            RedHatBoyStateMachine::Falling(state) => state.frame_name(),
+            RedHatBoyStateMachine::KnockedOut(state) => state.frame_name(),
         }
     }
 
@@ -249,6 +321,8 @@ impl RedHatBoyStateMachine {
             RedHatBoyStateMachine::Running(state) => &state.context(),
             RedHatBoyStateMachine::Sliding(state) => &state.context(),
             RedHatBoyStateMachine::Jumping(state) => &state.context(),
+            RedHatBoyStateMachine::Falling(state) => &state.context(),
+            RedHatBoyStateMachine::KnockedOut(state) => &state.context(),
         }
     }
 
@@ -281,6 +355,18 @@ impl From<RedHatBoyState<Jumping>> for RedHatBoyStateMachine {
     }
 }
 
+impl From<RedHatBoyState<Falling>> for RedHatBoyStateMachine {
+    fn from(state: RedHatBoyState<Falling>) -> Self {
+        RedHatBoyStateMachine::Falling(state)
+    }
+}
+
+impl From<RedHatBoyState<KnockedOut>> for RedHatBoyStateMachine {
+    fn from(state: RedHatBoyState<KnockedOut>) -> Self {
+        RedHatBoyStateMachine::KnockedOut(state)
+    }
+}
+
 impl From<SlidingEndState> for RedHatBoyStateMachine {
     fn from(end_state: SlidingEndState) -> Self {
         match end_state {
@@ -295,6 +381,15 @@ impl From<JumpingEndState> for RedHatBoyStateMachine {
         match end_state {
             JumpingEndState::Complete(running_state) => running_state.into(),
             JumpingEndState::Jumping(jumping_state) => jumping_state.into(),
+        }
+    }
+}
+
+impl From<FallingEndState> for RedHatBoyStateMachine {
+    fn from(end_state: FallingEndState) -> Self {
+        match end_state {
+            FallingEndState::Falling(falling_state) => falling_state.into(),
+            FallingEndState::KnockOut(knockout_state) => knockout_state.into(),
         }
     }
 }
@@ -315,13 +410,7 @@ impl RedHatBoy {
     }
 
     fn draw(&self, renderer: &Renderer) {
-        let frame_name = format!(
-            "{} ({}).png",
-            self.state_machine.frame_name(),
-            (self.state_machine.context().frame / 3) + 1
-        );
-
-        let sprite = self.sprite_sheet.frames.get(&frame_name).expect("Cell not found");
+        let sprite = self.current_sprite().expect("Cell not found");
 
         renderer.draw_image(
             &self.image,
@@ -354,6 +443,33 @@ impl RedHatBoy {
 
     fn jump(&mut self) {
         self.state_machine = self.state_machine.transition(Event::Jump);
+    }
+
+    fn knock_out(&mut self) {
+        self.state_machine = self.state_machine.transition(Event::KnockOut);
+    }
+
+    fn frame_name(&self) -> String {
+        format!(
+            "{} ({}).png",
+            self.state_machine.frame_name(),
+            (self.state_machine.context().frame / 3) + 1
+        )
+    }
+
+    fn current_sprite(&self) -> Option<&Cell> {
+        self.sprite_sheet.frames.get(&self.frame_name())
+    }
+
+    fn bounding_box(&self) -> Rect {
+        let sprite = self.current_sprite().expect("Cell not found");
+
+        Rect {
+            x: (self.state_machine.context().position.x + sprite.sprite_source_size.x as i16).into(),
+            y: (self.state_machine.context().position.y + sprite.sprite_source_size.y as i16).into(),
+            width: sprite.frame.w.into(),
+            height: sprite.frame.h.into(),
+        }
     }
 }
 
@@ -422,6 +538,9 @@ impl Game for WalkTheDog {
             }
 
             walk.boy.update();
+            if walk.boy.bounding_box().intersects(walk.stone.bounding_box()) {
+                walk.boy.knock_out();
+            }
         }
     }
 
