@@ -1,3 +1,5 @@
+use std::rc::Rc;
+
 use anyhow::{anyhow, Result};
 use async_trait::async_trait;
 use web_sys::HtmlImageElement;
@@ -6,7 +8,7 @@ use gloo_utils::format::JsValueSerdeExt;
 
 
 use crate::browser;
-use crate::schema::{Sheet, Rect, Point, Cell};
+use crate::schema::{SpriteSheet, Sheet, Rect, Point, Cell};
 use crate::engine::{self, Game, Renderer, KeyState, Image};
 
 const HEIGHT: i16 = 600;
@@ -93,8 +95,8 @@ mod red_hat_boy_states {
             RedHatBoyState { context: self.context.reset_frame().stop(), _state: Falling {}, }
         }
 
-        pub fn land_on(self, position: f32) -> RedHatBoyState<Running> {
-            RedHatBoyState { context: self.context.set_on(position as i16), _state: Running {}, }
+        pub fn land_on(self, position: i16) -> RedHatBoyState<Running> {
+            RedHatBoyState { context: self.context.set_on(position), _state: Running {}, }
         }
     }
 
@@ -131,8 +133,8 @@ mod red_hat_boy_states {
             RedHatBoyState { context: self.context.reset_frame().stop(), _state: Falling {}, }
         }
 
-        pub fn land_on(self, position: f32) -> RedHatBoyState<Running> {
-            RedHatBoyState { context: self.context.reset_frame().set_on(position as i16), _state: Running }
+        pub fn land_on(self, position: i16) -> RedHatBoyState<Running> {
+            RedHatBoyState { context: self.context.reset_frame().set_on(position), _state: Running }
         }
     }
 
@@ -203,8 +205,8 @@ mod red_hat_boy_states {
             RedHatBoyState { context: self.context.reset_frame().stop(), _state: Falling {}, }
         }
 
-        pub fn land_on(self, position: f32) -> RedHatBoyState<Running> {
-            RedHatBoyState { context: self.context.reset_frame().set_on(position as i16), _state: Running }
+        pub fn land_on(self, position: i16) -> RedHatBoyState<Running> {
+            RedHatBoyState { context: self.context.reset_frame().set_on(position), _state: Running }
         }
     }
 
@@ -284,7 +286,7 @@ pub enum Event {
     Update,
     Jump,
     KnockOut,
-    Land(f32),
+    Land(i16),
 }
 
 impl RedHatBoyStateMachine {
@@ -426,7 +428,7 @@ impl From<FallingEndState> for RedHatBoyStateMachine {
     }
 }
 
-struct RedHatBoy {
+pub struct RedHatBoy {
     state_machine: RedHatBoyStateMachine,
     sprite_sheet: Sheet,
     image: HtmlImageElement,
@@ -481,7 +483,7 @@ impl RedHatBoy {
         self.state_machine = self.state_machine.transition(Event::KnockOut);
     }
 
-    fn land_on(&mut self, position: f32) {
+    fn land_on(&mut self, position: i16) {
         self.state_machine = self.state_machine.transition(Event::Land(position));
     }
 
@@ -535,19 +537,18 @@ impl RedHatBoy {
 }
 
 
-struct Platform {
-    sheet: Sheet,
-    image: HtmlImageElement,
+pub struct Platform {
+    sheet: Rc<SpriteSheet>,
     position: Point,
 }
 
 impl Platform {
-    fn new(sheet: Sheet, image: HtmlImageElement, position: Point) -> Self {
-        Platform { sheet, image, position }
+    fn new(sheet: Rc<SpriteSheet>, position: Point) -> Self {
+        Platform { sheet, position }
     }
 
     fn destination_box(&self) -> Rect {
-        let platform = self.sheet.frames.get("13.png").expect("13.png does not exist");
+        let platform = self.sheet.cell("13.png").expect("13.png does not exist");
 
         Rect::new(
             self.position,
@@ -584,11 +585,22 @@ impl Platform {
         vec![bounding_box_one, bounding_box_two, bounding_box_three]
     }
 
-    fn draw(&self, renderer: &Renderer) {
-        let platform = self.sheet.frames.get("13.png").expect("13.png does not exist");
+    
+}
 
-        renderer.draw_image(
-            &self.image,
+pub trait Obstacle {
+    fn check_intersection(&self, boy: &mut RedHatBoy);
+    fn draw(&self, renderer: &Renderer);
+    fn move_horizontally(&mut self, x: i16);
+    fn right(&self) -> i16;
+}
+
+impl Obstacle for Platform {
+    fn draw(&self, renderer: &Renderer) {
+        let platform = self.sheet.cell("13.png").expect("13.png does not exist");
+
+        self.sheet.draw(
+            renderer,
             &Rect::new_from_x_y(
                 platform.frame.x.into(),
                 platform.frame.y.into(),
@@ -598,14 +610,65 @@ impl Platform {
             &self.destination_box()
         );
     }
+
+    fn move_horizontally(&mut self, x: i16) {
+        self.position.x += x;
+    }
+
+    fn check_intersection(&self, boy: &mut RedHatBoy) {
+        if let Some(box_to_land_on) = self
+            .bounding_boxes()
+            .iter()
+            .find(|&bounding_box| boy.bounding_box().intersects(bounding_box))
+        {
+            if boy.velocity_y() > 0 && boy.pos_y() < self.position.y {
+                boy.land_on(box_to_land_on.y());
+            } else {
+                boy.knock_out();
+            }
+        }
+    }
+
+    fn right(&self) -> i16 {
+        self.bounding_boxes().last().unwrap_or(&Rect::default()).right()
+    }
 }
 
+pub struct Barrier {
+    image: Image,
+}
+
+impl Barrier {
+    pub fn new(image: Image) -> Self {
+        Barrier { image }
+    }
+}
+
+impl Obstacle for Barrier {
+    fn check_intersection(&self, boy: &mut RedHatBoy) {
+        if boy.bounding_box().intersects(self.image.bounding_box()) {
+            boy.knock_out();
+        }
+    }
+
+    fn draw(&self, renderer: &Renderer) {
+        self.image.draw(renderer);
+    }
+
+    fn move_horizontally(&mut self, x: i16) {
+        self.image.move_horizontally(x);
+    }
+
+    fn right(&self) -> i16 {
+        self.image.right()
+    }
+}
 
 pub struct Walk {
+    obstacle_sheet: Rc<SpriteSheet>,
     boy: RedHatBoy,
     backgrounds: [Image; 2],
-    stone: Image,
-    platform: Platform,
+    obstacles: Vec<Box<dyn Obstacle>>,
 }
 
 impl Walk {
@@ -637,10 +700,13 @@ impl Game for WalkTheDog {
                 let background = engine::load_image("BG.png").await?;
                 let stone = engine::load_image("Stone.png").await?;
 
-                let platform_sheet = browser::fetch_json("tiles.json").await?;
-                let platform = Platform::new(
-                    platform_sheet.into_serde::<Sheet>()?,
+                let tiles = browser::fetch_json("tiles.json").await?;
+                let sprite_sheet = Rc::new(SpriteSheet::new(
+                    tiles.into_serde::<Sheet>()?,
                     engine::load_image("tiles.png").await?,
+                ));
+                let platform = Platform::new(
+                    sprite_sheet.clone(),
                     Point { x: 370, y: LOW_PLATFORM }
                 );
 
@@ -663,11 +729,16 @@ impl Game for WalkTheDog {
                                 Point { x: background_width, y: 0 },
                             )
                         ],
-                        stone: Image::new(
-                            stone,
-                            Point { x: 150, y: 546 },
-                        ),
-                        platform,
+                        obstacles: vec![
+                            Box::new(Barrier::new(
+                                Image::new(
+                                    stone,
+                                    Point { x: 150, y: 546 },
+                                )
+                            )),
+                            Box::new(platform),
+                        ],
+                        obstacle_sheet: sprite_sheet,
                     }
                 )))
             }
@@ -691,10 +762,8 @@ impl Game for WalkTheDog {
 
             walk.boy.update();
 
-            walk.platform.position.x += walk.velocity();
-            walk.stone.move_horizontally(walk.velocity());
-
             let velocity = walk.velocity();
+
             let [first_background, second_background] = &mut walk.backgrounds;
             first_background.move_horizontally(velocity);
             second_background.move_horizontally(velocity);
@@ -705,20 +774,13 @@ impl Game for WalkTheDog {
             if second_background.right() < 0 {
                 second_background.set_x(first_background.right());
             }
-            
-            for bounding_box in &walk.platform.bounding_boxes() {
-                if walk.boy.bounding_box().intersects(bounding_box) {
-                    if walk.boy.velocity_y() > 0 && walk.boy.pos_y() < walk.platform.position.y {
-                        walk.boy.land_on(bounding_box.y() as f32);
-                    } else {
-                        walk.boy.knock_out();
-                    }
-                }
-            }
 
-            if walk.boy.bounding_box().intersects(walk.stone.bounding_box()) {
-                walk.boy.knock_out();
-            }
+            walk.obstacles.retain(|obstacle| obstacle.right() > 0);
+            
+            walk.obstacles.iter_mut().for_each(|obstacle| {
+                obstacle.move_horizontally(velocity);
+                obstacle.check_intersection(&mut walk.boy);
+            });
         }
     }
 
@@ -737,8 +799,10 @@ impl Game for WalkTheDog {
                 background.draw(renderer);
             });
             walk.boy.draw(renderer);
-            walk.stone.draw(renderer);
-            walk.platform.draw(renderer);
+
+            walk.obstacles.iter().for_each(|obstacle| {
+                obstacle.draw(renderer);
+            });
         }
     }
 }
