@@ -3,6 +3,7 @@ mod browser;
 mod schema;
 mod engine;
 mod game;
+mod segment;
 
 use wasm_bindgen::prelude::*;
 use wasm_bindgen::JsValue;
