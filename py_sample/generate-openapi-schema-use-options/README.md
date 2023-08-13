@@ -1,19 +1,27 @@
-# options
+# use options
 
 ## setup
 
 ```shell
-pip install datamodel-code-generator
+pip install datamodel-code-generator fastapi-code-generator fastapi uvicorn
 ```
 
-## generate schema
+## generate schemas
 
 ```shell
-datamodel-codegen --input openapi.yaml --input-file-type openapi --output app/schemas.py
+bash ./bin/generate.sh
+```
+
+## update schemas
+
+```shell
+bash ./bin/update.sh
 ```
 
 ## run
 
 ```shell
-python app/main.py
+uvicorn api.main:app
 ```
+
+access to http://localhost:8000/docs

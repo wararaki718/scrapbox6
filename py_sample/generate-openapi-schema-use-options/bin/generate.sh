@@ -1,5 +1,6 @@
 #!/bin/bash
 
-# datamodel-codegen --input openapi.yaml --input-file-type openapi --output app/schemas.py
+# create an init application
+fastapi-codegen --input openapi.yaml --output api --model-file schema.py
 
 echo "DONE"
