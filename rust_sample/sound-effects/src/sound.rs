@@ -4,6 +4,8 @@ use wasm_bindgen::JsCast;
 use wasm_bindgen_futures::JsFuture;
 use web_sys::{AudioContext, AudioBuffer, AudioBufferSourceNode, AudioDestinationNode, AudioNode};
 
+use crate::schema::Audio;
+
 
 pub fn create_audio_context() -> Result<AudioContext> {
     AudioContext::new().map_err(|err| anyhow!("Could not create audio context: {:#?}", err))
@@ -13,14 +15,27 @@ pub fn create_buffer_source(ctx: &AudioContext) -> Result<AudioBufferSourceNode>
     ctx.create_buffer_source().map_err(|err| anyhow!("Error creating buffer source {:#?}", err))
 }
 
+pub fn create_track_source(ctx: &AudioContext, buffer: &AudioBuffer) -> Result<AudioBufferSourceNode> {
+    let track_source = create_buffer_source(ctx)?;
+    track_source.set_buffer(Some(&buffer));
+    connect_with_audio_node(&track_source, &ctx.destination())?;
+    Ok(track_source)
+}
+
 pub fn connect_with_audio_node(buffer_source: &AudioBufferSourceNode, destination: &AudioDestinationNode) -> Result<AudioNode> {
     buffer_source.connect_with_audio_node(&destination).map_err(|err| anyhow!("Error connecting audio source to destination {:#?}", err))
 }
 
-pub fn play_sound(ctx: &AudioContext, buffer: &AudioBuffer) -> Result<()> {
-    let track_source = create_buffer_source(ctx)?;
-    track_source.set_buffer(Some(&buffer));
-    connect_with_audio_node(&track_source, &ctx.destination())?;
+pub enum LOOPING {
+    NO,
+    YES,
+}
+
+pub fn play_sound(ctx: &AudioContext, buffer: &AudioBuffer, looping: LOOPING) -> Result<()> {
+    let track_source = create_track_source(ctx, buffer)?;
+    if matches!(looping, LOOPING::YES) {
+        track_source.set_loop(true);
+    }
 
     track_source.start().map_err(|err| anyhow!("Could not start sound!{:#?}", err))
 }
