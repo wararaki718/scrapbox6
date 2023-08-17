@@ -1,4 +1,5 @@
 use std::rc::Rc;
+use futures::channel::mpsc::UnboundedReceiver;
 use rand::prelude::*;
 use anyhow::{anyhow, Result};
 use async_trait::async_trait;
@@ -217,8 +218,8 @@ mod red_hat_boy_states {
         pub frame: u8,
         pub position: Point,
         pub velocity: Point,
-        audio: Audio,
-        jump_sound: Sound,
+        pub audio: Audio,
+        pub jump_sound: Sound,
     }
     
     const PLAYER_HEIGHT: i16 = HEIGHT - FLOOR;
@@ -374,6 +375,10 @@ impl RedHatBoyStateMachine {
     fn update(self) -> Self {
         self.transition(Event::Update)
     }
+
+    fn knocked_out(&self) -> bool {
+        matches!(self, RedHatBoyStateMachine::KnockedOut(_))
+    }
 }
 
 impl From<RedHatBoyState<Running>> for RedHatBoyStateMachine {
@@ -494,6 +499,10 @@ impl RedHatBoy {
         self.state_machine = self.state_machine.clone().transition(Event::KnockOut);
     }
 
+    fn knocked_out(&self) -> bool {
+        self.state_machine.knocked_out()
+    }
+
     fn land_on(&mut self, position: i16) {
         self.state_machine = self.state_machine.clone().transition(Event::Land(position));
     }
@@ -544,6 +553,15 @@ impl RedHatBoy {
 
     fn walking_speed(&self) -> i16 {
         self.state_machine.context().velocity.x
+    }
+
+    fn reset(boy: Self) -> Self {
+        RedHatBoy::new(
+            boy.sprite_sheet,
+            boy.image,
+            boy.state_machine.context().audio.clone(),
+            boy.state_machine.context().jump_sound.clone(),
+        )
     }
 }
 
@@ -711,6 +729,24 @@ impl Walk {
         self.timeline = rightmost(&next_obstacles);
         self.obstacles.append(&mut next_obstacles);
     }
+
+    fn knocked_out(&self) -> bool {
+        self.boy.knocked_out()
+    }
+
+    fn reset(walk: Self) -> Self {
+        let starting_obstacles = stone_and_platform(walk.stone.clone(), walk.obstacle_sheet.clone(), 0);
+        let timeline = rightmost(&starting_obstacles);
+
+        Walk {
+            boy: RedHatBoy::reset(walk.boy),
+            backgrounds: walk.backgrounds,
+            obstacles: starting_obstacles,
+            obstacle_sheet: walk.obstacle_sheet,
+            stone: walk.stone,
+            timeline,
+        }
+    }
 }
 
 
@@ -768,8 +804,28 @@ impl From<WalkTheDogState<Ready>> for WalkTheDogStateMachine {
 }
 
 struct Walking;
+enum WalkingEndState {
+    Complete(WalkTheDogState<GameOver>),
+    Continue(WalkTheDogState<Walking>),
+}
+impl From<WalkingEndState> for WalkTheDogStateMachine {
+    fn from(state: WalkingEndState) -> Self {
+        match state {
+            WalkingEndState::Complete(gameover) => gameover.into(),
+            WalkingEndState::Continue(walking) => walking.into(),
+        }
+    }
+}
 impl WalkTheDogState<Walking> {
-    fn update(mut self, keystate: &KeyState) -> WalkTheDogState<Walking> {
+    fn end_game(self) -> WalkTheDogState<GameOver> {
+        let receiver = browser::draw_ui("<button id='new_game'>New Game</button>")
+            .and_then(|_unit| browser::find_html_element_by_id("new_game"))
+            .map(|element| engine::add_click_handler(element))
+            .unwrap();
+        WalkTheDogState { _state: GameOver { new_game_event: receiver }, walk: self.walk }
+    }
+
+    fn update(mut self, keystate: &KeyState) -> WalkingEndState {
         if keystate.is_pressed("ArrowDown") {
             self.walk.boy.slide();
         }
@@ -805,19 +861,53 @@ impl WalkTheDogState<Walking> {
         } else {
             self.walk.timeline += walking_speed;
         }
-        self
+        
+        if self.walk.knocked_out() {
+            WalkingEndState::Complete(self.end_game())
+        } else {
+            WalkingEndState::Continue(self)
+        }
     }
 }
+
 impl From<WalkTheDogState<Walking>> for WalkTheDogStateMachine {
     fn from(state: WalkTheDogState<Walking>) -> Self {
         WalkTheDogStateMachine::Walking(state)
     }
 }
 
-struct GameOver;
+struct GameOver {
+    new_game_event: UnboundedReceiver<()>,
+}
+enum GameOverEndState {
+    Complete(WalkTheDogState<Ready>),
+    Continue(WalkTheDogState<GameOver>),
+}
+impl From<GameOverEndState> for WalkTheDogStateMachine {
+    fn from(state: GameOverEndState) -> Self {
+        match state {
+            GameOverEndState::Complete(ready) => ready.into(),
+            GameOverEndState::Continue(gameover) => gameover.into(),
+        }
+    }
+}
+impl GameOver {
+    fn new_game_pressed(&mut self) -> bool {
+        matches!(self.new_game_event.try_next(), Ok(Some(())))
+    }
+}
 impl WalkTheDogState<GameOver> {
-    fn update(self) -> WalkTheDogState<GameOver> {
-        self
+    fn update(mut self) -> GameOverEndState {
+        if self._state.new_game_pressed() {
+            GameOverEndState::Complete(self.new_game())
+        } else {
+            GameOverEndState::Continue(self)
+        }
+    }
+
+    fn new_game(self) -> WalkTheDogState<Ready> {
+        let _ = browser::hide_ui();
+        WalkTheDogState { _state: Ready, walk: Walk::reset(self.walk), }
     }
 }
 impl From<WalkTheDogState<GameOver>> for WalkTheDogStateMachine {
@@ -872,7 +962,6 @@ fn rightmost(obstacles: &Vec<Box<dyn Obstacle>>) -> i16 {
         .max_by(|x, y| x.cmp(&y))
         .unwrap_or(0)
 }
-
 
 
 const TIMELINE_MINIMUM: i16 = 1000;
