@@ -3,4 +3,6 @@ module Lib
     ) where
 
 someFunc :: IO ()
-someFunc = putStrLn "someFunc"
+someFunc = do
+    let result = (succ 9::Int) + (max 5 4) + 1;
+    putStrLn $ show result
