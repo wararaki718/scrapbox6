@@ -9,5 +9,5 @@ stack build
 ## run
 
 ```shell
-stack run first-step-exec
+stack run first-step-exe
 ```
