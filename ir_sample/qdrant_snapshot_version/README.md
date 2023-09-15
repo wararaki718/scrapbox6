@@ -1,4 +1,4 @@
-# download snapshot
+# snapshot recover
 
 ## setup
 
