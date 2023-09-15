@@ -1,7 +1,3 @@
-from pathlib import Path
-
-from qdrant_client.models import VectorParams
-
 from builder import QueryBuilder
 from client import SearchClient
 from condition import SearchCondition
