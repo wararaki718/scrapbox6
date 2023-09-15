@@ -17,3 +17,7 @@ docker-compose up
 ```shell
 python main.py
 ```
+
+```shell
+python search.py
+```
