@@ -21,3 +21,7 @@ python main.py
 ```shell
 python search.py
 ```
+
+```shell
+python restore.py
+```

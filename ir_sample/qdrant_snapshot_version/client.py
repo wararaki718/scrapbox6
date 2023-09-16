@@ -52,3 +52,9 @@ class SearchClient:
                 for chunk in r.iter_bytes(chunk_size=chunk_size):
                     f.write(chunk)
         return True
+
+    def restore_snapshot(self, collection_name: str, snapshot_name: str) -> bool:
+        url = f"{self._client._client.rest_uri}/collections/{collection_name}/snapshots/upload"
+        files = {"snapshot": open(snapshot_name, "rb")}
+        _ = httpx.post(url, files=files, timeout=600)
+        return True
