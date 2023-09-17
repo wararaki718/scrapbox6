@@ -11,7 +11,7 @@ pip install qdrant-client numpy
 launch qdrant
 
 ```shell
-docker-compose up
+docker-compose -f docker-compose-1.x.y.yml up
 ```
 
 ```shell

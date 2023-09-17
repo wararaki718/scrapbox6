@@ -5,7 +5,7 @@ from client import SearchClient
 
 def main():
     collection_name = "sample"
-    snapshot_name = "./download/sample-1.5.0.snapshot"
+    snapshot_name = "./download/sample-1.5.1.snapshot"
     dim = 3
 
     client = SearchClient()
