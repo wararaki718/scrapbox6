@@ -1,4 +1,4 @@
-# snapshot recover
+# snapshot delete
 
 ## setup
 
