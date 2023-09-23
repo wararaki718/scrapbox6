@@ -1,13 +1,13 @@
-# sample terraform use docker
+# create an instance on aws
 
 ## init
 
-```shell
+```bash
 terraform init
 ```
 
 ## plan
 
-```shell
+```bash
 terraform plan
 ```
