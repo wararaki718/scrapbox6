@@ -3,6 +3,7 @@
 ## init
 
 ```shell
+cd environment/dev # or environment/prd
 terraform init
 ```
 
