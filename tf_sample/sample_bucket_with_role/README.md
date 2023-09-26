@@ -1,4 +1,4 @@
-# bucket and ec2 with role
+# bucket with policy
 
 ## init
 
