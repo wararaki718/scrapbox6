@@ -15,14 +15,13 @@ data "aws_iam_policy_document" "access_policy" {
     actions = [
       "s3:PutObject",
       "s3:GetObject",
-      "s3:ListBucket",
-      "s3:DeleteObject"
+      "s3:ListBucket"
     ]
     effect = "Allow"
 
     resources = [
       "arn:aws:s3:::*/*",
-      "arn:aws:s3:::my-bucket-name"
+      "arn:aws:s3:::wararaki-bucket"
     ]
   }
 }
