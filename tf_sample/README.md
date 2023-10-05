@@ -1,1 +1,1 @@
-# terragrunt samples
+# terraform samples
