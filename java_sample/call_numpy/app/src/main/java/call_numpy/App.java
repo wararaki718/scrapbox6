@@ -3,13 +3,21 @@
  */
 package call_numpy;
 
+import java.nio.file.Paths;
 import java.io.File;
 import org.graalvm.polyglot.*;
 
 
 public class App {
     public static void main(String[] args) {
-        Context context = Context.newBuilder().allowAllAccess(true).build();
+        // String venvExePath = App.class.getClassLoader().getResource(Paths.get("venv", "bin", "graalpy").toString()).getPath();
+        String venvExePath = Paths.get("venv", "bin", "graalpy").toString();
+        Context context = Context.newBuilder()
+            .allowAllAccess(true)
+            .option("python.ForceImportSite", "true")
+            .option("python.Executable", venvExePath)
+            .build();
+
         try {
             File program = new File(ClassLoader.getSystemClassLoader().getResource("./calculate.py").toURI());
             context.eval(Source.newBuilder("python", program).build());
