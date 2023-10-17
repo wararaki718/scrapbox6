@@ -3,7 +3,7 @@
 ## setup
 
 ```shell
-pip install pandas numpy scipy
+pip install pandas numpy scipy scikit-learn
 ```
 
 ## run
