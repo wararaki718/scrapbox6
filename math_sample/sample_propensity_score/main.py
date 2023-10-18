@@ -2,6 +2,8 @@ import pandas as pd
 from sklearn.linear_model import LogisticRegression
 from sklearn.preprocessing import StandardScaler
 
+from score import PropensityScorerMatcher
+
 
 def main() -> None:
     cps_df = pd.read_stata("https://users.nber.org/~rdehejia/data/cps_controls.dta")
@@ -39,6 +41,9 @@ def main() -> None:
     print(result_df.head(3))
 
     # pscore matching
+    matcher = PropensityScorerMatcher()
+    match_df = matcher.compute(result_df)
+    print(match_df.head(3))
 
     print("DONE")
 
