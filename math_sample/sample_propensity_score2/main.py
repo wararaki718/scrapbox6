@@ -2,6 +2,10 @@ import numpy as np
 import pandas as pd
 import statsmodels.api as sm
 
+from match import ps_stratificasion
+from ipw import ipw
+from doubly_robust import doubly_robust_estimator
+
 
 def main() -> None:
     np.random.seed(0)
@@ -40,6 +44,21 @@ def main() -> None:
     predicts = result.predict(X)
     df["propensity_score"] = predicts
     print(df.head(3))
+    print()
+
+    print("ps match:")
+    print(ps_stratificasion(df))
+    print(ps_stratificasion(df, 0.05))
+    print(ps_stratificasion(df, 0.025))
+    print(ps_stratificasion(df, 0.01))
+    print()
+
+    print("ipw:")
+    print(ipw(df))
+    print()
+
+    print("doubly robust:")
+    print(doubly_robust_estimator(df))
     print()
 
     print("DONE")
