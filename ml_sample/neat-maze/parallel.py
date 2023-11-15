@@ -1,4 +1,5 @@
 import multiprocessing as mp
+from typing import Callable, Optional
 
 import neat
 
@@ -20,8 +21,17 @@ class NonDaemonPool(mp.pool.Pool):
         proc.__class__ = NoDaemonProcess
         return proc
 
+
 class EvaluatorParallel:
-    def __init__(self, num_workers: int, decode_function, evaluate_function, revaluate: bool=False, timeout=None, parallel: bool=True, print_progress: bool=True):
+    def __init__(
+        self, num_workers: int,
+        decode_function: Callable,
+        evaluate_function: Callable,
+        revaluate: bool=False,
+        timeout: Optional[int]=None,
+        parallel: bool=True,
+        print_progress: bool=True
+    ) -> None:
         self.num_workers = num_workers
         self.decode_function = decode_function
         self.evaluate_function = evaluate_function

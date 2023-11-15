@@ -4,10 +4,12 @@ import json
 from argparse import ArgumentParser, Namespace
 from pathlib import Path
 
+import neat
 from environment import MazeEnvironment
 from evaluator import MazeControllerEvaluator
 from nn import FeedForwardNetwork
 from parallel import EvaluatorParallel
+from population import Population
 
 
 def parse_args() -> Namespace:
@@ -80,6 +82,19 @@ def initialize_experiment(experiment_name: str, save_path: Path, args: Namespace
         json.dump(args.__dict__, f, indent=4)
 
 
+def make_config(config_file: Path, extra_info=None, custom_config=None) -> neat.Config:
+    config = neat.Config(
+        neat.DefaultGenome,
+        neat.DefaultReproduction,
+        neat.DefaultSpeciesSet,
+        neat.DefaultStagnation,
+        config_file,
+        extra_info=extra_info,
+        custom_config=custom_config,
+    )
+    return config
+
+
 def main() -> None:
     args = parse_args()
     save_path = Path("./out") / args.task
@@ -95,8 +110,19 @@ def main() -> None:
         decode_function=FeedForwardNetwork.create,
     )
 
-
     # create config
+    config_file = Path("./config")
+    custom_config = [
+        ("NEAT", "pop_size", args.pop_size),
+    ]
+    config = make_config(config_file, custom_config=custom_config)
+    config_out_file = save_path / "maze_neat.cfg"
+    config.save(config_out_file)
+
+    population = Population(config)
+    
+
+
 
     print("DONE")
 

@@ -1,3 +1,5 @@
+from typing import Callable
+
 from environment import MazeEnvironment
 
 class MazeControllerEvaluator:
@@ -5,7 +7,7 @@ class MazeControllerEvaluator:
         self.maze = maze
         self.timesteps = timesteps
 
-    def evaluate_agent(self, key: str, controller, generation: int):
+    def evaluate_agent(self, key: str, controller, generation: int) -> dict:
         self.maze.reset()
 
         done = False
