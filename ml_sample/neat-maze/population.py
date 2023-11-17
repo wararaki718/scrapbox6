@@ -1,3 +1,4 @@
+from neat.config import Config
 from neat.math_util import mean
 from neat.reporting import ReporterSet
 
@@ -15,13 +16,16 @@ class Population:
         5. Go to 1.
     """
 
-    def __init__(self, config, initial_state=None, constraint_function=None):
+    def __init__(self, config: Config, initial_state=None):
         self.reporters = ReporterSet()
         self.config = config
         stagnation = config.stagnation_type(config.stagnation_config, self.reporters)
-        self.reproduction = config.reproduction_type(config.reproduction_config,
-                                                     self.reporters,
-                                                     stagnation)
+        self.reproduction = config.reproduction_type(
+            config.reproduction_config,
+            self.reporters,
+            stagnation
+        )
+        
         if config.fitness_criterion == 'max':
             self.fitness_criterion = max
         elif config.fitness_criterion == 'min':
@@ -36,8 +40,7 @@ class Population:
             # Create a population from scratch, then partition into species.
             self.population = self.reproduction.create_new(config.genome_type,
                                                            config.genome_config,
-                                                           config.pop_size,
-                                                           constraint_function=constraint_function)
+                                                           config.pop_size)
             self.species = config.species_set_type(config.species_set_config, self.reporters)
             self.generation = 0
             self.species.speciate(config, self.population, self.generation)
@@ -108,7 +111,7 @@ class Population:
             # Create the next generation from the current generation.
             self.population = self.reproduction.reproduce(
                 self.config, self.species, self.config.pop_size, self.generation,
-                constraint_function=constraint_function)
+            )
 
             # Check for complete extinction.
             if not self.species.species:
@@ -119,7 +122,7 @@ class Population:
                 if self.config.reset_on_extinction:
                     self.population = self.reproduction.create_new(
                         self.config.genome_type, self.config.genome_config, self.config.pop_size,
-                        constraint_function=constraint_function)
+                    )
                 else:
                     raise CompleteExtinctionException()
 

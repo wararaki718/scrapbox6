@@ -99,7 +99,7 @@ def main() -> None:
     args = parse_args()
     save_path = Path("./out") / args.task
 
-    initialize_experiment(args.name, save_path, args)
+    # initialize_experiment(args.name, save_path, args)
 
     envs = MazeEnvironment.read_environment(".", args.task)
     evaluator = MazeControllerEvaluator(envs, args.timesteps)
@@ -121,8 +121,13 @@ def main() -> None:
 
     population = Population(config)
     
-
-
+    reporters = [
+        neat.StdOutReporter(True),
+    ]
+    for reporter in reporters:
+        population.add_reporter(reporter)
+    
+    population.run(fitness_function=parallel.evaluate, n=args.generation)
 
     print("DONE")
 
