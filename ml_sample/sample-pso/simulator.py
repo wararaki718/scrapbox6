@@ -7,8 +7,8 @@ import numpy as np
 class PSOSimulator:
     def __init__(self) -> None:
         self._w = 0.5
-        self._C1 = 0.5
-        self._C2 = 0.5
+        self._C1 = 0.05
+        self._C2 = 0.01
 
     def simulate(self, X: np.ndarray, V: np.ndarray, t: int=100) -> None:
         self._pbest = X.copy() # (n_particle, n_dim)
