@@ -5,10 +5,10 @@ import numpy as np
 
 
 class PSOSimulator:
-    def __init__(self) -> None:
-        self._w = 0.5
-        self._C1 = 0.05
-        self._C2 = 0.01
+    def __init__(self, w: float=0.5, C1: float=0.05, C2: float=0.01) -> None:
+        self._w = w
+        self._C1 = C1
+        self._C2 = C2
 
     def simulate(self, X: np.ndarray, V: np.ndarray, t: int=100) -> None:
         self._pbest = X.copy() # (n_particle, n_dim)
