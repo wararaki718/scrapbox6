@@ -1,13 +1,13 @@
 import torch
 
-from model import Model
+from factory import SequentialFactory
 
 
 def main() -> None:
     X = torch.rand(100, 2)
     y = torch.rand(100)
 
-    model = Model(2, 3, 1)
+    model = SequentialFactory.create(2, 3, 1)
     criterion = torch.nn.MSELoss()
     optimizer = torch.optim.SGD(model.parameters(), lr=0.01)
 
@@ -18,7 +18,7 @@ def main() -> None:
         loss.backward()
         optimizer.step()
         print(f"Epoch {epoch + 1} | Loss: {loss.item():.4f}")
-
+    
     print("DONE")
 
 
