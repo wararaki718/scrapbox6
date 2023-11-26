@@ -1,4 +1,4 @@
-from typing import Optional, Tuple
+from typing import Tuple
 
 import numpy as np
 
@@ -45,6 +45,8 @@ def is_connected(robot: np.ndarray) -> bool:
             return False
     
     connectivity = np.zeros(robot.shape)
+    recursive_search(start[0], start[1], connectivity, robot)
+    
     for i in range(robot.shape[0]):
         for j in range(robot.shape[1]):
             if robot[i][j] != 0 and connectivity[i][j] != 1:
@@ -86,21 +88,3 @@ def get_full_connectivity(robot: np.ndarray) -> np.ndarray:
         return np.empty((0, 2)).T
     
     return np.array(output).T
-
-
-def factory_create(height: int, weight: int, probabilities: Optional[np.ndarray] = None) -> Tuple[np.ndarray, np.ndarray]:
-    done = False
-    if probabilities is None:
-        probabilities = np.ones((5))
-        probabilities[0] = 0.6
-
-    while (not done):
-        robot = np.zeros((height, weight))
-        for i in range(height):
-            for j in range(weight):
-                robot[i][j] = draw(probabilities)
-
-        if is_connected(robot) and has_actuator(robot):
-            done = True
-    
-    return robot, get_full_connectivity(robot)
