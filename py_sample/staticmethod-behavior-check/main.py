@@ -58,7 +58,6 @@ def main() -> None:
         print(f"(1 - 2) ** 2 + 1 = {result} (classmethod)")
     except Exception as e:
         print(e)
-    print()
 
     try:
         result = CustomSquareCalculator.multiply(1, 2)
