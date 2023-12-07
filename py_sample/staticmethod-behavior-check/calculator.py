@@ -33,3 +33,8 @@ class CustomSquareCalculator(Calculator):
     
     def multiply(self, a: int, b: int) -> int:
         return (a * b) ** 2 + 1
+
+
+class AddCustomCalculator(Calculator):
+    def add(self, a: int, b: int) -> int:
+        return a + b + 1

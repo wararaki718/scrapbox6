@@ -1,4 +1,4 @@
-from calculator import Calculator, CustomSquareCalculator, SquareCalculator
+from calculator import AddCustomCalculator, Calculator, CustomSquareCalculator, SquareCalculator
 
 
 
@@ -64,6 +64,25 @@ def main() -> None:
         print(f"(1 * 2) ** 2 + 1 = {result} (staticmethod)")
     except Exception as e:
         print(e)
+    print()
+
+    print("AddCustomCalculator class:")
+    add_custom_calculator = AddCustomCalculator()
+
+    result = add_custom_calculator.add(1, 2)
+    print(f"1 + 2 + 1 = {result}")
+
+    result = add_custom_calculator.sub(1, 2)
+    print(f"1 - 2 = {result} (object classmethod)")
+
+    result = add_custom_calculator.multiply(1, 2)
+    print(f"1 * 2 = {result} (object staticmethod)")
+
+    result = AddCustomCalculator.sub(1, 2)
+    print(f"1 - 2 = {result} (classmethod)")
+
+    result = AddCustomCalculator.multiply(1, 2)
+    print(f"1 * 2 = {result} (staticmethod)")
     print()
 
     print("DONE")
