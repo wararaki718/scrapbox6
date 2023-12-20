@@ -1,4 +1,4 @@
-# qdrant sparse vector
+# qdrant dense and sparse vectors search
 
 ## setup
 
