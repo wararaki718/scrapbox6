@@ -65,6 +65,7 @@ def main():
 
     client.insert(collection_name, points)
     print(f"data inserted: {len(points)}")
+    print()
 
     print("search:")
     top_n = 10
