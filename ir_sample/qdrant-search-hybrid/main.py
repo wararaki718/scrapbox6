@@ -11,6 +11,7 @@ from qdrant_client.models import (
 )
 
 from client import SearchClient
+from fusion import rrf_fusion
 from utils import get_texts, show
 from vectorizer import SparseVectorizer, DenseVectorizer
 
@@ -22,6 +23,7 @@ def main():
         "text-dense": VectorParams(
             size=768,
             distance=Distance.COSINE,
+            on_disk=False,
         ),
     }
     sparse_params = {
@@ -60,9 +62,9 @@ def main():
             }
         )
         points.append(point)
-    print(f"data inserted: {len(points)}")
-    
+
     client.insert(collection_name, points)
+    print(f"data inserted: {len(points)}")
 
     print("search:")
     top_n = 10
@@ -97,6 +99,10 @@ def main():
 
     print("dense result:")
     show(results[1])
+
+    print("hybrid result (reciprocal rank fusion):")
+    hybrid_results = rrf_fusion(results)
+    show(hybrid_results)
 
     _ = client.delete_index(collection_name)
     print(f"index deleted: {collection_name}")

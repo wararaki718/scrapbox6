@@ -22,7 +22,7 @@ class SearchClient:
         )
         return response
 
-    def search(self, collection_name: str, requests: List[SearchRequest]) -> List[ScoredPoint]:
+    def search(self, collection_name: str, requests: List[SearchRequest]) -> List[List[ScoredPoint]]:
         response = self._client.search_batch(
             collection_name=collection_name,
             requests=requests,
