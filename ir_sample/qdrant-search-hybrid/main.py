@@ -103,7 +103,7 @@ def main():
 
     print("hybrid result (reciprocal rank fusion):")
     hybrid_results = rrf_fusion(results)
-    show(hybrid_results)
+    show(hybrid_results[:top_n])
 
     _ = client.delete_index(collection_name)
     print(f"index deleted: {collection_name}")
