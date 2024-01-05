@@ -1,0 +1,9 @@
+opensearch:
+  uris: https://localhost:9200
+  username: admin
+  password: admin
+
+spring:
+  jackson:
+    serialization:
+      INDENT_OUTPUT: true
