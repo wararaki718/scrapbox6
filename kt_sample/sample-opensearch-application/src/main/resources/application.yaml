@@ -1,5 +1,5 @@
 opensearch:
-  uris: https://localhost:9200
+  uris: http://localhost:9200
   username: admin
   password: admin
 

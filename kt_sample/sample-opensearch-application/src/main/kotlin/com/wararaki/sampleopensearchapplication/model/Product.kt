@@ -9,8 +9,5 @@ import org.springframework.data.elasticsearch.annotations.FieldType
 data class Product(
     @Id val id: String,
     @Field(type = FieldType.Text, name = "name") val name: String,
-    @Field(type = FieldType.Double, name = "price") val price: Double,
-    @Field(type = FieldType.Integer, name = "quantity") val quantity: Int,
-    @Field(type = FieldType.Text, name = "description") val description: String,
-    @Field(type = FieldType.Keyword, name = "vendor") val vendor: String,
+    @Field(type = FieldType.Integer, name = "price") val price: Int,
 ){}

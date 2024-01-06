@@ -6,5 +6,5 @@ import org.springframework.stereotype.Repository
 
 @Repository
 interface MarketplaceRepository : ElasticsearchRepository<Product, String> {
-    fun findByNameLikeAndPriceGreaterThan(name: String, price: Double): List<Product>
+    fun findByNameLikeAndPriceGreaterThan(name: String, price: Int): List<Product>
 }
