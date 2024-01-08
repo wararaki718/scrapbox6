@@ -10,6 +10,8 @@ use intellij
 docker-compose up
 ```
 
+open http://localhost:5601 on your browser.
+
 ## check the behaviors
 
 insert data
