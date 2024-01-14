@@ -1,0 +1,17 @@
+{
+  "properties": {
+    "vector": {
+      "type": "knn_vector",
+      "dimension": 2,
+      "method": {
+        "name": "hnsw",
+        "space_type": "innerproduct",
+        "engine": "faiss",
+        "parameters": {
+          "ef_construction": 128,
+          "m": 24
+        }
+      }
+    }
+  }
+}
