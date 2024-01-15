@@ -1,0 +1,5 @@
+version: "3"
+services:
+  batch:
+    image: poetry-cli-option:latest
+    build: .

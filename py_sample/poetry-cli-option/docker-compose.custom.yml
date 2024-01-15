@@ -1,0 +1,4 @@
+version: "3"
+services:
+  batch:
+    entrypoint: ["poetry", "run", "cliapp", "--name", "custom"]
