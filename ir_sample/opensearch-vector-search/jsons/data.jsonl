@@ -1,0 +1,8 @@
+{ "index": { "_index": "my-knn-index-1", "_id": "6" } }
+{ "my_vector2": [1.5, 5.5, 4.5, 6.4], "price": 10.3 }
+{ "index": { "_index": "my-knn-index-1", "_id": "7" } }
+{ "my_vector2": [2.5, 3.5, 5.6, 6.7], "price": 5.5 }
+{ "index": { "_index": "my-knn-index-1", "_id": "8" } }
+{ "my_vector2": [4.5, 5.5, 6.7, 3.7], "price": 4.4 }
+{ "index": { "_index": "my-knn-index-1", "_id": "9" } }
+{ "my_vector2": [1.5, 5.5, 4.5, 6.4], "price": 8.9 }
