@@ -1,0 +1,27 @@
+version: "3"
+services:
+  frontend:
+    build:
+      context: .
+      dockerfile: ./frontend/Dockerfile
+    image: sample-frontend-api:latest
+    environment:
+      - BACKEND_HOST=backend
+      - BACKEND_PORT=2345
+    ports:
+      - 1234:1234
+    networks:
+      - application-net
+
+  backend:
+    build:
+      context: .
+      dockerfile: ./backend/Dockerfile
+    image: sample-backend-api:latest
+    ports:
+      - 2345:2345
+    networks:
+      - application-net
+
+networks:
+  application-net:
