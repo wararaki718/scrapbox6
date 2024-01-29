@@ -23,7 +23,26 @@ pub fn run(config: Config) -> MyResult<()> {
     for filename in config.files {
         match open(&filename) {
             Err(err) => eprintln!("Failed to open {}: {}", filename, err),
-            Ok(_) => println!("Opened {}", filename),
+            Ok(reader) => {
+                let mut nonblank = 1;
+                for (i, line) in reader.lines().enumerate() {
+                    let result = line?;
+                    if config.number_lines {
+                        println!("{:6}\t{}", i+1, result);
+                    }
+                    else if config.number_nonblank_lines{
+                        if result.is_empty() {
+                            println!("");
+                        } else {
+                            println!("{:6}\t{}", nonblank, result);
+                            nonblank += 1;
+                        }
+                    } 
+                    else {
+                        println!("{}", result);
+                    }
+                }
+            },
         }
     }
     Ok(())

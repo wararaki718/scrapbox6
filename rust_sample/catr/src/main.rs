@@ -3,5 +3,4 @@ fn main() {
         eprintln!("{}", e);
         std::process::exit(1);
     }
-    println!("DONE");
 }

@@ -13,7 +13,19 @@ cargo run -- --help
 ```
 
 ```shell
-cargo run -- src/*.rs
+cargo run -- tests/input/fox.txt
+```
+
+```shell
+cargo run -- - < tests/input/fox.txt
+```
+
+```shell
+cargo run -- -n tests/input/spiders.txt
+```
+
+```shell
+cargo run -- -b tests/input/the-bustle.txt
 ```
 
 ## test

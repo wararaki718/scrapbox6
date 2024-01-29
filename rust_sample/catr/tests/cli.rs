@@ -49,7 +49,51 @@ fn run(args: &[&str], expected_file: &str) -> TestResult {
     Ok(())
 }
 
+
+#[test]
+fn empty() -> TestResult {
+    run(&[EMPTY], "tests/expected/empty.txt.out")
+}
+
+
 #[test]
 fn bustle() -> TestResult {
     run(&[BUSTLE], "tests/expected/the-bustle.txt.out")
+}
+
+
+#[test]
+fn fox_line() -> TestResult {
+    run(&[FOX, "-n"], "tests/expected/fox.txt.n.out")
+}
+
+
+#[test]
+fn spider_blank() -> TestResult {
+    run(&[SPIDERS, "-b"], "tests/expected/spiders.txt.b.out")
+}
+
+
+fn run_stdin(input_file: &str, args: &[&str], expected_file: &str) -> TestResult {
+    let input = fs::read_to_string(input_file)?;
+    let expected = fs::read_to_string(expected_file)?;
+    Command::cargo_bin(PRG)?
+        .args(args)
+        .write_stdin(input)
+        .assert()
+        .success()
+        .stdout(expected);
+    Ok(())
+}
+
+
+#[test]
+fn bustle_stdin() -> TestResult {
+    run_stdin(BUSTLE, &["-"], "tests/expected/the-bustle.txt.stdin.out")
+}
+
+
+#[test]
+fn bustle_stdin_blank() -> TestResult {
+    run_stdin(BUSTLE, &["-", "-b"], "tests/expected/the-bustle.txt.b.stdin.out")
 }
