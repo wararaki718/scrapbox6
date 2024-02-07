@@ -173,3 +173,18 @@ fn run_stdin_outfile_count(test: &Test) -> TestResult {
 fn empty() -> TestResult {
     run(&EMPTY)
 }
+
+#[test]
+fn one_stdin() -> TestResult {
+    run_stdin(&ONE)
+}
+
+#[test]
+fn two_outfile() -> TestResult {
+    run_outfile(&TWO)
+}
+
+#[test]
+fn three() -> TestResult {
+    run(&THREE)
+}
