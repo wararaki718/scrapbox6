@@ -175,8 +175,23 @@ fn empty() -> TestResult {
 }
 
 #[test]
+fn skip() -> TestResult {
+    run(&SKIP)
+}
+
+#[test]
 fn one_stdin() -> TestResult {
     run_stdin(&ONE)
+}
+
+#[test]
+fn one_count() -> TestResult {
+    run_count(&ONE)
+}
+
+#[test]
+fn one_stdin_count() -> TestResult {
+    run_stdin_count(&ONE)
 }
 
 #[test]
@@ -185,6 +200,21 @@ fn two_outfile() -> TestResult {
 }
 
 #[test]
+fn two_stdin_outfile_count() -> TestResult {
+    run_stdin_outfile_count(&TWO)
+}
+
+#[test]
 fn three() -> TestResult {
     run(&THREE)
+}
+
+#[test]
+fn three_count() -> TestResult {
+    run_count(&THREE)
+}
+
+#[test]
+fn three_outfile_count() -> TestResult {
+    run_outfile_count(&THREE)
 }

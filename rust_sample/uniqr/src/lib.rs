@@ -1,6 +1,6 @@
 use clap::{App, Arg};
 use std::error::Error;
-use std::io::{self, BufRead, BufReader};
+use std::io::{self, BufRead, BufReader, Write};
 use std::fs::File;
 
 type MyResult<T> = Result<T, Box<dyn Error>>;
@@ -57,10 +57,26 @@ fn open(filename: &str) -> MyResult<Box<dyn BufRead>> {
 pub fn run(config: Config) -> MyResult<()> {
     let mut file = open(&config.in_file)
         .map_err(|e| format!("{}: {}", config.in_file, e))?;
+
+    let mut out_file: Box<dyn Write> = match &config.out_file {
+        Some(out_name) => Box::new(File::create(out_name)?),
+        _ => Box::new(io::stdout()),
+    };
+
+    let mut print = |count: u64, text: &str| -> MyResult<()> {
+        if count > 0 {
+            if config.count {
+                write!(out_file, "{:>4} {}", count, text)?;
+            } else {
+                write!(out_file, "{}", text)?;
+            }
+        };
+        Ok(())
+    };
+
     let mut line = String::new();
     let mut previous = String::new();
     let mut count = 0;
-
     loop {
         let bytes = file.read_line(&mut line)?;
         if bytes == 0 {
@@ -68,9 +84,7 @@ pub fn run(config: Config) -> MyResult<()> {
         }
 
         if line.trim_end() != previous.trim_end() {
-            if count > 0 {
-                print!("{}", previous);
-            }
+            let _ = print(count, &previous);
             previous = line.clone();
             count = 0;
         }
@@ -78,10 +92,7 @@ pub fn run(config: Config) -> MyResult<()> {
         count += 1;
         line.clear();
     }
-
-    if count > 0 {
-        print!("{}", previous);
-    }
+    let _ = print(count, &previous)?;
 
     Ok(())
 }
