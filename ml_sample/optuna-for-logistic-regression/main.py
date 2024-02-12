@@ -5,8 +5,8 @@ import optuna
 from sklearn.datasets import load_breast_cancer
 from sklearn.model_selection import train_test_split
 
-from experiment import Experiment
-
+from experiment import AccuracyExperiment, LogLossExperiment, ROCAUCExperiment
+from evaluate import Evaluator
 
 def main() -> None:
     X, y = load_breast_cancer(return_X_y=True)
@@ -19,7 +19,8 @@ def main() -> None:
     del X, y
     gc.collect()
 
-    experiment = Experiment()
+    print("accuracy:")
+    experiment = AccuracyExperiment()
     objective = partial(
         experiment.experiment,
         X_train=X_train,
@@ -29,9 +30,57 @@ def main() -> None:
     )
     study = optuna.create_study(direction="maximize")
     study.optimize(objective, n_trials=10)
-
+    accuracy_params = study.best_trial.params
     print(f"number of finished trials: {len(study.trials)}")
-    print(f"best: {study.best_trial.params}")
+    print()
+
+    print("log loss:")
+    experiment = LogLossExperiment()
+    objective = partial(
+        experiment.experiment,
+        X_train=X_train,
+        y_train=y_train,
+        X_valid=X_valid,
+        y_valid=y_valid,
+    )
+    study = optuna.create_study(direction="minimize")
+    study.optimize(objective, n_trials=10)
+    log_loss_params = study.best_trial.params
+    print(f"number of finished trials: {len(study.trials)}")
+    print()
+
+    print("roc auc:")
+    experiment = ROCAUCExperiment()
+    objective = partial(
+        experiment.experiment,
+        X_train=X_train,
+        y_train=y_train,
+        X_valid=X_valid,
+        y_valid=y_valid,
+    )
+    study = optuna.create_study(direction="maximize")
+    study.optimize(objective, n_trials=10)
+    roc_auc_params = study.best_trial.params
+    print(f"number of finished trials: {len(study.trials)}")
+    print()
+
+    evaluator = Evaluator()
+    result = evaluator.evaluate(accuracy_params, X_train, y_train, X_test, y_test)
+    print("[accuracy]")
+    print(f"param: {accuracy_params}")
+    print(f"result: {result}")
+    print()
+
+    result = evaluator.evaluate(log_loss_params, X_train, y_train, X_test, y_test)
+    print("[log_loss]")
+    print(f"param: {log_loss_params}")
+    print(f"result: {result}")
+    print()
+
+    result = evaluator.evaluate(roc_auc_params, X_train, y_train, X_test, y_test)
+    print("[roc_auc]")
+    print(f"param: {roc_auc_params}")
+    print(f"result: {result}")
     print()
 
     print("DONE")
