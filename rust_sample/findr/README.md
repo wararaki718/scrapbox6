@@ -11,3 +11,7 @@ cargo build
 ```shell
 cargo run -- --help
 ```
+
+```shell
+cargo run -- --name ".*\\.rs"
+```
