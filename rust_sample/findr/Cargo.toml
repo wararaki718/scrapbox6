@@ -11,6 +11,6 @@ walkdir = "2"
 regex = "1"
 
 [dev-dependencies]
-assert_cmd = "2"
+assert_cmd = "2.0.13"
 predicates = "2"
 rand = "0.8"
