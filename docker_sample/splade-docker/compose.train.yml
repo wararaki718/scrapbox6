@@ -1,0 +1,6 @@
+version: "3"
+services:
+  app:
+    command: ["python", "-m", "splade.train", "config.checkpoint_dir=./checkpoint"]
+    volumes:
+      - ./checkpoint:/app/splade/checkpoint

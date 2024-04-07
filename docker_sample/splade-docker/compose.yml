@@ -1,0 +1,12 @@
+version: "3"
+services:
+  app:
+    build: .
+    image: splade-docker:latest
+    deploy:
+      resources:
+        reservations:
+          devices:
+            - driver: nvidia
+              count: 1
+              capabilities: [gpu]

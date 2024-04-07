@@ -1,0 +1,13 @@
+version: "3"
+services:
+  app:
+    command: [
+      "python",
+      "-m",
+      "splade.index",
+      "config.checkpoint_dir=./checkpoint",
+      "config.index_dir=./model_checkpoint"
+    ]
+    volumes:
+      - ./checkpoint:/app/splade/checkpoint
+      - ./model_checkpoint:/app/splade/model_checkpoint

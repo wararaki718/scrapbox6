@@ -1,0 +1,15 @@
+version: "3"
+services:
+  app:
+    command: [
+      "python",
+      "-m",
+      "splade.retrieve",
+      "config.checkpoint_dir=./checkpoint",
+      "config.index_dir=./model_checkpoint",
+      "config.out_dir=./output"
+    ]
+    volumes:
+      - ./checkpoint:/app/splade/checkpoint
+      - ./model_checkpoint:/app/splade/model_checkpoint
+      - ./output:/app/splade/output
