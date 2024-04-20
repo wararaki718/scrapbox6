@@ -18,6 +18,7 @@ class NNModel(torch.nn.Module):
             torch.nn.Dropout(p=0.001),
             torch.nn.Sigmoid(),
             torch.nn.Linear(n_hidden, n_output),
+            torch.nn.Softmax(dim=1),
         ]
         self._model = torch.nn.Sequential(*layers)
 

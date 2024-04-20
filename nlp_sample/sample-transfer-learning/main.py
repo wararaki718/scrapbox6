@@ -1,12 +1,14 @@
 import gc
 
 import pandas as pd
+import torch
 from datasets import load_dataset
 from tqdm import tqdm
 
 from model import NNModel
-from vectorizer import TextVectorizer
+from train import Trainer
 from utils import try_gpu
+from vectorizer import TextVectorizer
 
 
 def main() -> None:
@@ -27,8 +29,10 @@ def main() -> None:
         texts = train_df.iloc[i: i+chunksize].text.tolist()
         x = vectorizer.transform(texts)
         X_train.append(x)
+    y_train = torch.Tensor(train_df.label.tolist()).long()
     print(len(X_train))
-    del vectorizer
+    print(y_train.shape)
+    del vectorizer, train_df
     gc.collect()
 
     n_input = 768
@@ -36,6 +40,11 @@ def main() -> None:
     n_output = 6
     model = NNModel(n_input, n_hidden, n_output)
     model = try_gpu(model)
+    print("model defined")
+
+    trainer = Trainer()
+    train_loss = trainer.train(model, X_train, y_train)
+    print(f"train loss: {train_loss}")
     
     print("DONE")
 
