@@ -31,7 +31,7 @@ def main() -> None:
     gc.collect()
 
     valid_df = pd.DataFrame(dataset["validation"])
-    X_valid = text_vectorizer.transform(train_df.text, chunksize)
+    X_valid = text_vectorizer.transform(valid_df.text, chunksize)
     y_valid = label_vectorizer.transform(valid_df.label)
     print(f"valid: {len(X_valid)}")
     del valid_df
