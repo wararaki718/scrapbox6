@@ -5,10 +5,10 @@ import torch
 from datasets import load_dataset
 from tqdm import tqdm
 
+from executer import TrainValidExecuter
 from model import NNModel
-from train import Trainer
 from utils import try_gpu
-from vectorizer import TextVectorizer
+from vectorizer import TextVectorizer, LabelVectorizer
 
 
 def main() -> None:
@@ -18,21 +18,23 @@ def main() -> None:
     print(f"valid: {len(dataset['validation'])}")
     print(f"test: {len(dataset['test'])}")
 
-    train_df = pd.DataFrame(dataset["train"])
-    print(train_df.shape)
-
     model_name = "google-bert/bert-base-cased"
-    vectorizer = TextVectorizer(model_name=model_name)
-    X_train = []
-    chunksize = 64
-    for i in tqdm(range(0, train_df.shape[0], chunksize)):
-        texts = train_df.iloc[i: i+chunksize].text.tolist()
-        x = vectorizer.transform(texts)
-        X_train.append(x)
-    y_train = torch.Tensor(train_df.label.tolist()).long()
-    print(len(X_train))
-    print(y_train.shape)
-    del vectorizer, train_df
+    chunksize = 32
+    text_vectorizer = TextVectorizer(model_name=model_name)
+    label_vectorizer = LabelVectorizer()
+
+    train_df = pd.DataFrame(dataset["train"])
+    X_train = text_vectorizer.transform(train_df.text, chunksize)
+    y_train = label_vectorizer.transform(train_df.label)
+    print(f"train: {len(X_train)}")
+    del train_df
+    gc.collect()
+
+    valid_df = pd.DataFrame(dataset["validation"])
+    X_valid = text_vectorizer.transform(train_df.text, chunksize)
+    y_valid = label_vectorizer.transform(valid_df.label)
+    print(f"valid: {len(X_valid)}")
+    del valid_df
     gc.collect()
 
     n_input = 768
@@ -42,8 +44,8 @@ def main() -> None:
     model = try_gpu(model)
     print("model defined")
 
-    trainer = Trainer()
-    train_loss = trainer.train(model, X_train, y_train)
+    executer = TrainValidExecuter()
+    train_loss = executer.execute(model, X_train, y_train, X_valid, y_valid)
     print(f"train loss: {train_loss}")
     
     print("DONE")
