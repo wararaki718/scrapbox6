@@ -3,7 +3,7 @@
 ## setup
 
 ```shell
-pip install datasets trasformers torch
+pip install datasets trasformers torch torcheval
 ```
 
 ## run

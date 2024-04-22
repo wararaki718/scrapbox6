@@ -1,11 +1,10 @@
 import gc
 
 import pandas as pd
-import torch
 from datasets import load_dataset
-from tqdm import tqdm
 
 from executer import TrainValidExecuter
+from evaluator import Evaluator
 from model import NNModel
 from utils import try_gpu
 from vectorizer import TextVectorizer, LabelVectorizer
@@ -47,6 +46,22 @@ def main() -> None:
     executer = TrainValidExecuter()
     train_loss = executer.execute(model, X_train, y_train, X_valid, y_valid)
     print(f"train loss: {train_loss}")
+    del X_train, y_train, X_valid, y_valid
+    gc.collect()
+
+    test_df = pd.DataFrame(dataset["test"])
+    X_test = text_vectorizer.transform(test_df.text, chunksize)
+    y_test = label_vectorizer.transform(test_df.label)
+    print(f"test: {len(X_test)}")
+    del test_df, dataset, text_vectorizer, label_vectorizer
+    gc.collect()
+
+    print(f"evaluate")
+    evaluator = Evaluator()
+    result: dict = evaluator.evaluate(model, X_test, y_test, n_output)
+    for key, value in result.items():
+        print(f"{key}: {value}")
+    print()
     
     print("DONE")
 
