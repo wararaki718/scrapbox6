@@ -31,7 +31,7 @@ def main() -> None:
     print(f"indexed: {indexer.get_index()}")
     print()
 
-    answer_pids = [query["answer"]["answer_pids"] for query in queries["search_dev"]]
+    answer_pids = [query["answer"]["answer_pids"] for query in data["search_dev"]]
     filtered_queries = [
         query for query, pids in zip(queries, answer_pids)
         if any(pid < max_id for pid in pids)
