@@ -8,6 +8,10 @@ def main() -> None:
     print(data.column_names)
     print(type(data))
     print(data)
+    print(type(data["train"]["query"]))
+    print(type(data["train"]["positives"]))
+    print(type(data["train"]["negatives"]))
+
     print("DONE")
 
 
