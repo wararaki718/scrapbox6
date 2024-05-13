@@ -2,6 +2,8 @@ from typing import List, Dict
 
 from qdrant_client import QdrantClient
 from qdrant_client.models import (
+    FilterSelector,
+    Filter,
     NamedVector,
     PointStruct,
     ScalarQuantization,
@@ -48,4 +50,11 @@ class SearchClient:
 
     def delete_index(self, collection_name: str) -> bool:
         response = self._client.delete_collection(collection_name=collection_name)
+        return response
+
+    def delete_points(self, collection_name: str) -> UpdateResult:
+        response = self._client.delete(
+            collection_name=collection_name,
+            points_selector=FilterSelector(filter=Filter())
+        )
         return response

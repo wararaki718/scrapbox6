@@ -21,5 +21,9 @@ python main.py
 delete
 
 ```shell
-python delete.py
+python delete_collection.py
+```
+
+```shell
+python delete_points.py
 ```
