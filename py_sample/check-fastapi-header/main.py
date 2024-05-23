@@ -1,5 +1,6 @@
 from fastapi import Header
 
+
 def main() -> None:
     header = Header(default="default")
     print(header)
