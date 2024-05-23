@@ -15,3 +15,5 @@ python main.py
 ```shell
 uvicorn api:app --reload
 ```
+
+http://localhost:8000/docs
