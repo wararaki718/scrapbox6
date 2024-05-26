@@ -3,7 +3,7 @@
 ## setup
 
 ```shell
-pip install datasets
+pip install datasets scikit-learn transformers
 ```
 
 ## run

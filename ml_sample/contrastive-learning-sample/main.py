@@ -1,4 +1,7 @@
 from datasets import load_dataset
+from sklearn.model_selection import train_test_split
+
+from vectorizer import DenseVectorizer
 
 
 def main() -> None:
@@ -7,26 +10,61 @@ def main() -> None:
     data = load_dataset(dataset_name)
     print(data.shape)
     print(data.column_names)
-    print(type(data))
-    print(data)
-    print(type(data["train"]["query"]))
-    print(type(data["train"]["positives"]))
-    print(type(data["train"]["negatives"]))
+    print()
 
-    # TODO remove
-    # interaction_name = "unicamp-dl/mmarco"
-    # interaction = load_dataset(interaction_name, "japanese")
-    # print(interaction.shape)
-    # print(interaction.column_names)
+    (
+        train_query,
+        test_query,
+        train_positive_documents,
+        test_positive_documents,
+        train_negative_documents,
+        test_negative_documents
+    ) = train_test_split(
+        data["train"]["query"],
+        data["train"]["positives"],
+        data["train"]["negatives"],
+        test_size=0.2,
+        random_state=42,
+    )
+    print("train datasets:")
+    print(len(train_query))
+    print(len(train_positive_documents))
+    print(len(train_negative_documents))
+    print()
 
-    # print(interaction["train"]["query"][:3])
-    # print()
+    (
+        valid_query,
+        test_query,
+        valid_positive_documents,
+        test_positive_documents,
+        valid_negative_documents,
+        test_negative_documents
+    ) = train_test_split(
+        test_query,
+        test_positive_documents,
+        test_negative_documents,
+        test_size=0.5,
+        random_state=42,
+    )
+    print("validation dataset:")
+    print(len(valid_query))
+    print(len(valid_positive_documents))
+    print(len(valid_negative_documents))
+    print()
 
-    # print(interaction["train"]["positive"][:3])
-    # print()
+    print("test dataset:")
+    print(len(test_query))
+    print(len(test_positive_documents))
+    print(len(test_negative_documents))
+    print()
 
-    # print(interaction["train"]["negative"][:3])
-    # print()
+    model_name = "tohoku-nlp/bert-base-japanese-v3"
+    vectorizer = DenseVectorizer(model_name=model_name)
+    embeddings = vectorizer.transform(test_query[0])
+    print(embeddings.shape)
+
+    embeddings = vectorizer.transform_batch(test_query[:3])
+    print(embeddings.shape)
 
     print("DONE")
 
