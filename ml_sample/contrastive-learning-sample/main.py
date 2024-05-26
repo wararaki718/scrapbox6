@@ -60,10 +60,7 @@ def main() -> None:
 
     model_name = "tohoku-nlp/bert-base-japanese-v3"
     vectorizer = DenseVectorizer(model_name=model_name)
-    embeddings = vectorizer.transform(test_query[0])
-    print(embeddings.shape)
-
-    embeddings = vectorizer.transform_batch(test_query[:3])
+    embeddings = vectorizer.transform(test_query[:3])
     print(embeddings.shape)
 
     print("DONE")
