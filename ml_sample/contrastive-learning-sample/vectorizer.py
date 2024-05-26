@@ -20,6 +20,6 @@ class DenseVectorizer:
 
     def transform_batch(self, texts: List[str]) -> torch.Tensor:
         inputs: dict = self._tokenize(texts)
-        outputs = self._model(**inputs)
+        outputs: BaseModelOutputWithPoolingAndCrossAttentions = self._model(**inputs)
         embeddings: torch.Tensor = outputs.last_hidden_state.mean(dim=1)
         return embeddings
