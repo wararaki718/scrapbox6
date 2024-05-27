@@ -2,6 +2,7 @@ import torch
 import torch.nn as nn
 import torch.nn.functional as F
 
+
 # http://yann.lecun.com/exdb/publis/pdf/hadsell-chopra-lecun-06.pdf
 class ContrasiveLoss(nn.Module):
     def __init__(self, margin: float=1.0) -> None:
