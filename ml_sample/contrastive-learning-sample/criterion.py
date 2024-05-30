@@ -32,6 +32,18 @@ class TripletContrastiveLoss(nn.Module):
         return loss
 
 
+class TripletContrastiveWithDotLoss(nn.Module):
+    def __init__(self) -> None:
+        super(TripletContrastiveWithDotLoss, self).__init__()
+        self._triplet_loss = nn.TripletMarginWithDistanceLoss(
+            distance_function=lambda x, y: torch.matmul(x, y.T)
+        )
+    
+    def forward(self, x_q: torch.Tensor, x_pos: torch.Tensor, x_neg: torch.Tensor) -> torch.Tensor:
+        loss: torch.Tensor = self._triplet_loss(x_q, x_pos, x_neg)
+        return loss
+
+
 if __name__ == "__main__":
     criterion = ContrasiveLoss()
     x_q = torch.randn(1, 128)
@@ -46,5 +58,9 @@ if __name__ == "__main__":
     x_neg = torch.randn(10, 128)
 
     triplet_criterion = TripletContrastiveLoss()
+    loss = triplet_criterion(x_q, x_pos, x_neg)
+    print(loss)
+
+    triplet_dot_criterion = TripletContrastiveWithDotLoss()
     loss = triplet_criterion(x_q, x_pos, x_neg)
     print(loss)
