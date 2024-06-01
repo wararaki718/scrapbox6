@@ -2,16 +2,19 @@ from datasets import load_dataset
 from sklearn.model_selection import train_test_split
 
 from vectorizer import DenseVectorizer
+from train import Trainer
+from utils import show_data
 
 
 def main() -> None:
-    # use
+    # data load
     dataset_name = "bclavie/mmarco-japanese-hard-negatives"
     data = load_dataset(dataset_name)
     print(data.shape)
     print(data.column_names)
     print()
 
+    # train test split
     (
         train_query,
         test_query,
@@ -27,11 +30,9 @@ def main() -> None:
         random_state=42,
     )
     print("train datasets:")
-    print(len(train_query))
-    print(len(train_positive_documents))
-    print(len(train_negative_documents))
-    print()
+    show_data(train_query, train_positive_documents, train_negative_documents)
 
+    # valid test split
     (
         valid_query,
         test_query,
@@ -47,17 +48,13 @@ def main() -> None:
         random_state=42,
     )
     print("validation dataset:")
-    print(len(valid_query))
-    print(len(valid_positive_documents))
-    print(len(valid_negative_documents))
-    print()
+    show_data(valid_query, valid_positive_documents, valid_negative_documents)
 
     print("test dataset:")
-    print(len(test_query))
-    print(len(test_positive_documents))
-    print(len(test_negative_documents))
-    print()
+    show_data(test_query, test_positive_documents, test_negative_documents)
 
+    # vectorize
+    ## chunking
     model_name = "tohoku-nlp/bert-base-japanese-v3"
     vectorizer = DenseVectorizer(model_name=model_name)
     embeddings = vectorizer.transform(test_query[:3])
