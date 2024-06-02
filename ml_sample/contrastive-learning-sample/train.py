@@ -16,7 +16,7 @@ class Trainer:
     def train(
         self,
         model: TripletModel,
-        optimzier: torch.optim.optimizer,
+        optimzier: torch.optim.Optimizer,
         X_train_queries: List[torch.Tensor],
         X_train_positive_documents: List[torch.Tensor],
         X_train_negative_documents: List[torch.Tensor],

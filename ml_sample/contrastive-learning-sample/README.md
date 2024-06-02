@@ -3,7 +3,7 @@
 ## setup
 
 ```shell
-pip install datasets scikit-learn transformers
+pip install datasets scikit-learn transformers tqdm
 ```
 
 ## run
