@@ -1,9 +1,10 @@
 from datasets import load_dataset
 from sklearn.model_selection import train_test_split
 
-from vectorizer import DenseVectorizer
+from iterator import DataIterator
 from train import Trainer
 from utils import show_data
+from vectorizer import DenseVectorizer
 
 
 def main() -> None:
@@ -57,8 +58,10 @@ def main() -> None:
     ## chunking
     model_name = "tohoku-nlp/bert-base-japanese-v3"
     vectorizer = DenseVectorizer(model_name=model_name)
-    embeddings = vectorizer.transform(test_query[:3])
-    print(embeddings.shape)
+    # embeddings = vectorizer.transform(test_query[:3])
+    #print(embeddings.shape)
+
+
 
     print("DONE")
 
