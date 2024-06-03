@@ -3,6 +3,7 @@ import torch
 from datasets import load_dataset
 from sklearn.model_selection import train_test_split
 
+from evaluate import TripletEvaluator
 from model import TripletModel
 from train import Trainer
 from utils import show_data, try_gpu
@@ -81,6 +82,7 @@ def main() -> None:
     print(X_valid_queries[0].shape)
     print()
 
+    # train
     model = TripletModel(
         n_query_input=X_train_queries[0].shape[1],
         n_document_input=X_train_positive_documents[0].shape[1],
@@ -101,6 +103,23 @@ def main() -> None:
         X_valid_positive_documents,
         X_valid_negative_documents,
     )
+    del X_train_queries, X_train_positive_documents, X_train_negative_documents
+    del X_valid_queries, X_valid_positive_documents, X_valid_negative_documents
+    gc.collect()
+    print("model trained.")
+
+    # evaluate
+    X_test_queries = vectorizer.transform(test_query[:256], chunksize=64)
+    X_test_positive_documents = vectorizer.transform(test_positive_documents[:256], chunksize=64)
+    X_test_negative_documents = vectorizer.transform(test_negative_documents[:256], chunksize=64)
+    print(len(X_test_queries))
+    print(X_test_queries[0].shape)
+    print()
+
+    evaluator = TripletEvaluator()
+    result = evaluator.evaluate(model, X_test_queries, X_test_positive_documents, X_test_negative_documents)
+    print(f"accuracy: {result}")
+    print()
 
     print("DONE")
 

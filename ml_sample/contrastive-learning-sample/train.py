@@ -12,7 +12,6 @@ class Trainer:
         self._n_epochs = n_epochs
         self._criterion = TripletContrastiveLoss()
 
-
     def train(
         self,
         model: TripletModel,
@@ -47,7 +46,6 @@ class Trainer:
                 print(f"Epoch {epoch}: valid_loss={valid_loss}")
 
         return model
-
 
     def _train_step(
         self,
@@ -86,7 +84,6 @@ class Trainer:
             optimizer.step()
         
         return train_loss / len(X_queries)
-
 
     def _validate_step(
         self,
