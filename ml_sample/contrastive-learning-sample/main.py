@@ -33,8 +33,6 @@ def main() -> None:
         data["train"]["query"],
         positive_documents,
         negative_documents,
-        #data["train"]["positives"],
-        #data["train"]["negatives"],
         test_size=0.2,
         random_state=42,
     )
