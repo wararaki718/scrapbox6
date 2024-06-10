@@ -14,7 +14,7 @@ class SearchClient:
         self._client.recreate_collection(
             collection_name=collection_name,
             vectors_config=params,
-            on_disk_payload=True,
+            on_disk_payload=False,
             shard_number=4,
         )
     
