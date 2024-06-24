@@ -10,13 +10,13 @@ def main() -> None:
     print(f"cosine similarity: {y}")
     print()
     
-    y = torch.dot(x_a[0], x_b[0])
-    print(f"dot product: {y}")
-    print()
+    # y = torch.dot(x_a[0], x_b[0])
+    # print(f"dot product: {y}")
+    # print()
 
-    y = torch.matmul(x_a, x_b.T)
-    print(f"matmul: {y}")
-    print()
+    # y = torch.matmul(x_a, x_b.T)
+    # print(f"matmul: {y}")
+    # print()
 
     x_a_norm = torch.norm(x_a, dim=1)
     x_b_norm = torch.norm(x_b, dim=1)
