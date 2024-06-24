@@ -20,11 +20,18 @@ def main() -> None:
 
     x_a_norm = torch.norm(x_a, dim=1)
     x_b_norm = torch.norm(x_b, dim=1)
-    print(x_a_norm)
-    print(x_b_norm)
-    print()
+    # print(x_a_norm)
+    # print(x_b_norm)
+    # print()
     y = torch.torch.matmul(x_a, x_b.T) / (x_a_norm * x_b_norm)
     print(f"cos-sim (matmul with norm): {y}")
+    print()
+
+    x_a_norm = x_a / torch.norm(x_a, dim=1).reshape(-1, 1)
+    x_b_norm = x_b / torch.norm(x_b, dim=1).reshape(-1, 1)
+    y = torch.matmul(x_a_norm,  x_b_norm.T)
+    print(f"dot product: {y}")
+    print()
     print("DONE")
 
 
