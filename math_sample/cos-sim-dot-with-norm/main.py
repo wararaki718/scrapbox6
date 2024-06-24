@@ -23,7 +23,7 @@ def main() -> None:
     # print(x_a_norm)
     # print(x_b_norm)
     # print()
-    y = torch.torch.matmul(x_a, x_b.T) / (x_a_norm * x_b_norm)
+    y = torch.matmul(x_a, x_b.T) / (x_a_norm * x_b_norm)
     print(f"cos-sim (matmul with norm): {y}")
     print()
 
