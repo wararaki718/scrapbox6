@@ -1,8 +1,5 @@
 from transformers import AutoTokenizer, AutoModelForTokenClassification
 
-# from postprocessor import Postprocessor
-# from vectorizer import TextVectorizer
-
 
 def main() -> None:
     model_name = "macavaney/deepct"
