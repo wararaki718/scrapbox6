@@ -1,0 +1,5 @@
+services:
+  app:
+    entrypoint: ["python", "world.py"]
+    volumes:
+      - ./data/world:/opt/app/data

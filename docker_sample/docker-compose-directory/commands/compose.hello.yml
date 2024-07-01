@@ -1,0 +1,5 @@
+services:
+  app:
+    entrypoint: ["python", "hello.py"]
+    volumes:
+      - ./data/hello:/opt/app/data
