@@ -10,6 +10,7 @@ from model import NNModel
 def main() -> None:
     train, test = AG_NEWS()
 
+    # TODO: change embedding tool
     model_name = "BAAI/bge-small-en-v1.5"
     model: TextEmbedding = TextEmbedding(
         model_name=model_name,
