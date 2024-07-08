@@ -1,7 +1,8 @@
-import numpy as np
+import gc
+
+import torch
 from fastembed import TextEmbedding
 from torchtext.datasets import AG_NEWS
-from torch.utils.data.datapipes.iter.sharding import ShardingFilterIterDataPipe
 
 from model import NNModel
 
@@ -15,13 +16,22 @@ def main() -> None:
         providers=["CUDAExecutionProvider"],
     )
 
+    labels = []
+    sentences = []
     for label, sentence in train:
-        print(label)
-        print(sentence)
-        embedding: np.ndarray = next(iter(model.embed(sentence)))
-        print(embedding.shape)
-        print(type(embedding))
-        break
+        labels.append(label)
+        sentences.append(sentence)
+
+    y = torch.Tensor(labels)
+    X: torch.Tensor = torch.cat(
+        tuple(map(lambda x: torch.Tensor(x), model.embed(sentences))),
+        dim=0,
+    )
+    print(y.shape)
+    print(X.shape)
+    del sentences
+    gc.collect()
+
     print("DONE")
 
 
