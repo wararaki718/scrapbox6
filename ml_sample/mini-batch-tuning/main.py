@@ -1,21 +1,17 @@
 import gc
 
+import numpy as np
 import torch
-from fastembed import TextEmbedding
 from torchtext.datasets import AG_NEWS
+from sklearn.feature_extraction.text import TfidfVectorizer
 
 from model import NNModel
+from trainer import Trainer
+from utils import try_gpu
 
 
 def main() -> None:
     train, test = AG_NEWS()
-
-    # TODO: change embedding tool
-    model_name = "BAAI/bge-small-en-v1.5"
-    model: TextEmbedding = TextEmbedding(
-        model_name=model_name,
-        providers=["CUDAExecutionProvider"],
-    )
 
     labels = []
     sentences = []
@@ -23,15 +19,38 @@ def main() -> None:
         labels.append(label)
         sentences.append(sentence)
 
+    labels = np.array(labels) - 1 # scaling 
+    print(np.unique(labels))
+
+    sentences = np.array(sentences)
+    print(f"n_data: {len(sentences)}")
+    # print(sentences[:3])
+    print()
+
+    # sorted
+    indices = np.argsort(labels)
+    labels = labels[indices]
+    sentences = sentences[indices]
+    
+    # vectorized
+    vectorizer = TfidfVectorizer(max_df=0.99, min_df=0.01)
+    X_tfidf = vectorizer.fit_transform(sentences)
+    X = torch.Tensor(X_tfidf.toarray())
     y = torch.Tensor(labels)
-    X: torch.Tensor = torch.cat(
-        tuple(map(lambda x: torch.Tensor(x), model.embed(sentences))),
-        dim=0,
-    )
-    print(y.shape)
-    print(X.shape)
-    del sentences
+    print(f"vocabs: {len(vectorizer.get_feature_names_out())}")
+    print()
+    del X_tfidf, label, vectorizer, sentences
     gc.collect()
+    print(X.shape)
+    print(y.shape)
+
+    # model
+    model = NNModel(
+        n_input=X.shape[1],
+        n_output=len(set(labels)),
+    )
+    model = try_gpu(model)
+    trainer = Trainer()
 
     print("DONE")
 
