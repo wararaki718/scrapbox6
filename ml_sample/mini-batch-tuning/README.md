@@ -3,7 +3,7 @@
 ## setup
 
 ```shell
-pip install torch fastembed torchtext torchdata scikit-learn scipy
+pip install torch fastembed torchtext torchdata scikit-learn scipy torcheval
 ```
 
 ## run

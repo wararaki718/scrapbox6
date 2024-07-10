@@ -64,7 +64,7 @@ class Trainer:
             loss.backward()
             optimizer.step()
         
-        return train_loss
+        return train_loss / train_loader.batch_size
 
     def _validate_step(
         self,
@@ -86,4 +86,4 @@ class Trainer:
             loss: torch.Tensor = self._criterion(y_pred, y)
             valid_loss += loss.item()
         
-        return valid_loss
+        return valid_loss / valid_loader.batch_size
